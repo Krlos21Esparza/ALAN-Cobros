@@ -1,0 +1,2004 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#d71920">
+<title>Sistema de Control de Cobros y Deudores</title>
+
+<style>
+:root {
+  --red:#d71920;
+  --red-dark:#a90e16;
+  --white:#ffffff;
+  --gray:#f2f2f2;
+  --muted:#777777;
+  --green:#168447;
+  --orange:#e58a00;
+  --border:#e5e5e5;
+  --black:#222222;
+}
+
+* {
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body {
+  font-family:Arial,Helvetica,sans-serif;
+  background:#eeeeee;
+  color:#222;
+}
+
+.app {
+  max-width:900px;
+  min-height:100vh;
+  margin:auto;
+  background:#fff;
+  padding:18px;
+}
+
+header {
+  background:var(--red);
+  color:white;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:18px;
+}
+
+.top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.brand {
+  font-size:27px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.brand small {
+  display:block;
+  font-size:11px;
+  letter-spacing:2px;
+  margin-top:5px;
+  color:#ffe0e0;
+}
+
+.status {
+  font-size:13px;
+  background:#333;
+  padding:9px 12px;
+  border-radius:20px;
+  color:#fff;
+  text-align:center;
+  white-space:nowrap;
+  font-weight:bold;
+  font-variant-numeric:tabular-nums;
+}
+
+h2 {
+  font-size:19px;
+  margin:20px 0 12px;
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.stat {
+  padding:16px;
+  border-radius:13px;
+  background:#f4f4f4;
+  border-left:4px solid var(--red);
+  min-width:0;
+}
+
+.stat span {
+  display:block;
+  color:#666;
+  font-size:12px;
+  margin-bottom:8px;
+}
+
+.stat strong {
+  font-size:20px;
+  overflow-wrap:anywhere;
+}
+
+.panel {
+  background:white;
+  border:1px solid var(--border);
+  border-radius:15px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+.form-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.field {
+  margin-bottom:12px;
+  min-width:0;
+}
+
+.field.full {
+  grid-column:1/-1;
+}
+
+label {
+  display:block;
+  font-size:12px;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+input,textarea,select {
+  width:100%;
+  padding:12px;
+  border:1px solid #d8d8d8;
+  border-radius:9px;
+  font-size:15px;
+  background:#fff;
+  color:#111;
+  outline:none;
+  font-family:inherit;
+}
+
+input:focus,textarea:focus,select:focus {
+  border-color:var(--red);
+  box-shadow:0 0 0 2px rgba(215,25,32,.08);
+}
+
+textarea {
+  resize:vertical;
+  min-height:65px;
+}
+
+button {
+  border:0;
+  border-radius:9px;
+  padding:12px 15px;
+  font-weight:bold;
+  font-size:13px;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+button:active {
+  transform:scale(.98);
+}
+
+button:disabled {
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.btn-red {
+  background:var(--red);
+  color:white;
+}
+
+.btn-black {
+  background:#222;
+  color:white;
+}
+
+.btn-gray {
+  background:#e9e9e9;
+  color:#111;
+}
+
+.btn-green {
+  background:var(--green);
+  color:white;
+}
+
+.btn-danger {
+  background:#ffe6e6;
+  color:#bd1111;
+}
+
+.btn-small {
+  padding:9px 10px;
+  font-size:12px;
+}
+
+.actions {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.actions button {
+  flex:1;
+  min-width:100px;
+}
+
+.search {
+  margin-bottom:12px;
+  border:2px solid #ddd;
+}
+
+.search:focus {
+  border-color:var(--red);
+}
+
+.person {
+  border:1px solid var(--border);
+  border-radius:13px;
+  padding:15px;
+  margin-bottom:12px;
+  background:#fff;
+  min-width:0;
+}
+
+.person-top {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.person-name {
+  font-size:17px;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+
+.person-date {
+  color:#777;
+  font-size:12px;
+  margin-top:5px;
+  line-height:1.6;
+}
+
+.balance {
+  font-size:23px;
+  font-weight:900;
+  color:var(--red);
+  margin:13px 0;
+  overflow-wrap:anywhere;
+}
+
+.details {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  background:#f7f7f7;
+  border-radius:10px;
+  padding:11px;
+}
+
+.detail {
+  min-width:0;
+}
+
+.detail span {
+  display:block;
+  font-size:11px;
+  color:#777;
+  margin-bottom:4px;
+}
+
+.detail strong {
+  font-size:13px;
+  overflow-wrap:anywhere;
+}
+
+.tag {
+  display:inline-block;
+  padding:6px 9px;
+  border-radius:20px;
+  font-size:10px;
+  font-weight:bold;
+  text-align:center;
+  max-width:100%;
+}
+
+.tag.late {
+  background:#ffe3e3;
+  color:#b90000;
+}
+
+.tag.ok {
+  background:#e1f5e8;
+  color:#16743c;
+}
+
+.tag.today {
+  background:#fff0d6;
+  color:#a45d00;
+}
+
+.tag.paid {
+  background:#dceaff;
+  color:#1554a0;
+}
+
+.countdown {
+  margin:13px 0;
+  padding:15px;
+  border-radius:12px;
+  text-align:center;
+  background:#e8f6ed;
+  border:1px solid #cce8d4;
+}
+
+.countdown.warning {
+  background:#fff3dc;
+  border-color:#f3d7a5;
+}
+
+.countdown.danger {
+  background:#ffe9e9;
+  border-color:#f4c2c2;
+}
+
+.countdown-label {
+  display:block;
+  font-size:11px;
+  font-weight:bold;
+  color:#555;
+  margin-bottom:5px;
+}
+
+.countdown-number {
+  display:block;
+  font-size:30px;
+  font-weight:900;
+  color:var(--green);
+  font-variant-numeric:tabular-nums;
+}
+
+.countdown.warning .countdown-number {
+  color:#b56b00;
+}
+
+.countdown.danger .countdown-number {
+  color:#c00000;
+}
+
+.countdown small {
+  display:block;
+  font-size:11px;
+  color:#666;
+  margin-top:4px;
+}
+
+.payments {
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid #eee;
+}
+
+.payment-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  padding:8px 0;
+  border-bottom:1px solid #eee;
+}
+
+.payment-row span {
+  overflow-wrap:anywhere;
+}
+
+.payment-row strong {
+  color:var(--green);
+  white-space:nowrap;
+}
+
+.hidden {
+  display:none !important;
+}
+
+.empty {
+  text-align:center;
+  padding:28px 10px;
+  color:#777;
+  font-size:14px;
+  background:#fafafa;
+  border-radius:12px;
+}
+
+footer {
+  text-align:center;
+  color:#888;
+  font-size:11px;
+  padding:20px 5px;
+  line-height:1.8;
+}
+
+.notice {
+  padding:12px;
+  border-radius:9px;
+  background:#fff3cd;
+  color:#765900;
+  font-size:12px;
+  margin-bottom:14px;
+  line-height:1.5;
+}
+
+.backup-buttons {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.backup-buttons button {
+  flex:1;
+  min-width:130px;
+}
+
+.section-heading {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.section-heading h2 {
+  margin:20px 0 12px;
+}
+
+.search-count {
+  font-size:11px;
+  color:#777;
+  margin:-4px 0 12px;
+}
+
+.toast {
+  position:fixed;
+  left:50%;
+  bottom:25px;
+  transform:translateX(-50%) translateY(20px);
+  background:#222;
+  color:#fff;
+  padding:13px 18px;
+  border-radius:10px;
+  font-size:13px;
+  z-index:1000;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  max-width:90%;
+  text-align:center;
+}
+
+.toast.show {
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+@media(max-width:480px) {
+  .app {padding:12px}
+  header {padding:17px}
+  .brand {font-size:23px}
+  .brand small {font-size:9px;letter-spacing:1px}
+  .status {font-size:11px;padding:8px}
+  .form-grid {grid-template-columns:1fr}
+  .field.full {grid-column:auto}
+  .stat strong {font-size:17px}
+  .person-top {flex-direction:column}
+  .countdown-number {font-size:27px}
+}
+
+@media(min-width:700px) {
+  .stats {grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="top">
+    <div class="brand">
+      ALAN 🇲🇽
+      <small>SISTEMA DE CONTROL DE COBROS</small>
+    </div>
+
+    <div class="status">
+      🕒 <span id="clock">--:--:--</span>
+    </div>
+  </div>
+</header>
+
+<div class="notice" id="storageNotice">
+  Preparando almacenamiento de datos...
+</div>
+
+<!-- ESTADÍSTICAS -->
+
+<section class="stats">
+
+  <div class="stat">
+    <span>PERSONAS REGISTRADAS</span>
+    <strong id="totalPeople">0</strong>
+  </div>
+
+  <div class="stat">
+    <span>DINERO PENDIENTE</span>
+    <strong id="totalDebt">$0.00</strong>
+  </div>
+
+  <div class="stat">
+    <span>TOTAL COBRADO</span>
+    <strong id="totalPaid">$0.00</strong>
+  </div>
+
+  <div class="stat">
+    <span>PERSONAS ATRASADAS</span>
+    <strong id="totalLate">0</strong>
+  </div>
+
+</section>
+
+<!-- REGISTRO DE PERSONAS -->
+
+<section class="panel">
+
+  <h2 id="formTitle">➕ Registrar persona</h2>
+
+  <form id="personForm">
+
+    <input type="hidden" id="personId">
+
+    <div class="form-grid">
+
+      <div class="field full">
+        <label for="personName">Nombre completo</label>
+        <input id="personName" type="text"
+          placeholder="Nombre de la persona" required>
+      </div>
+
+      <div class="field">
+        <label for="initialDebt">Deuda inicial</label>
+        <input id="initialDebt" type="number"
+          min="0" step="0.01" placeholder="0.00" required>
+      </div>
+
+      <div class="field">
+        <label for="dailyFine">Multa diaria</label>
+        <input id="dailyFine" type="number"
+          min="0" step="0.01" value="0" required>
+      </div>
+
+      <div class="field">
+        <label for="dueDate">Fecha de vencimiento</label>
+        <input id="dueDate" type="date" required>
+      </div>
+
+      <div class="field">
+        <label for="personPhone">Teléfono (opcional)</label>
+        <input id="personPhone" type="tel"
+          placeholder="Número de teléfono">
+      </div>
+
+      <div class="field full">
+        <label for="personNotes">Observaciones</label>
+        <textarea id="personNotes"
+          placeholder="Información adicional..."></textarea>
+      </div>
+
+    </div>
+
+    <div class="actions">
+
+      <button class="btn-red" type="submit" id="savePersonBtn">
+        GUARDAR PERSONA
+      </button>
+
+      <button class="btn-gray hidden" type="button"
+        id="cancelEditBtn">
+        CANCELAR
+      </button>
+
+    </div>
+
+  </form>
+
+</section>
+
+<!-- REGISTRAR ABONO -->
+
+<section class="panel hidden" id="paymentPanel">
+
+  <h2>💵 Registrar abono</h2>
+
+  <p id="paymentPersonName"
+    style="font-size:13px;color:#666;margin-bottom:12px">
+  </p>
+
+  <form id="paymentForm">
+
+    <input type="hidden" id="paymentPersonId">
+
+    <div class="field">
+      <label for="paymentAmount">Cantidad del abono</label>
+      <input type="number" id="paymentAmount"
+        min="0.01" step="0.01" placeholder="0.00" required>
+    </div>
+
+    <div class="field">
+      <label for="paymentDate">Fecha del abono</label>
+      <input type="date" id="paymentDate" required>
+    </div>
+
+    <div class="field">
+      <label for="paymentNote">Concepto (opcional)</label>
+      <input id="paymentNote" type="text"
+        placeholder="Ej. Pago semanal">
+    </div>
+
+    <div class="actions">
+
+      <button class="btn-green" type="submit">
+        REGISTRAR ABONO
+      </button>
+
+      <button class="btn-gray" type="button"
+        id="cancelPaymentBtn">
+        CANCELAR
+      </button>
+
+    </div>
+
+  </form>
+
+</section>
+
+<!-- LISTA DE PERSONAS -->
+
+<section>
+
+  <div class="section-heading">
+    <h2>👥 Lista de personas</h2>
+  </div>
+
+  <input class="search" id="searchInput"
+    type="search"
+    placeholder="🔎 Buscar por nombre, apellido o teléfono..."
+    autocomplete="off">
+
+  <div id="searchCount" class="search-count"></div>
+
+  <div id="peopleList"></div>
+
+</section>
+
+<!-- COPIAS DE SEGURIDAD -->
+
+<section class="panel">
+
+  <h2>🗄️ Copias de seguridad</h2>
+
+  <p style="font-size:12px;color:#777;margin-bottom:13px;line-height:1.6">
+    Descarga una copia de tus datos para conservarla o restaurarla
+    en otro dispositivo.
+  </p>
+
+  <div class="backup-buttons">
+
+    <button class="btn-black" id="exportBtn" type="button">
+      DESCARGAR COPIA
+    </button>
+
+    <button class="btn-gray" id="importBtn" type="button">
+      RESTAURAR COPIA
+    </button>
+
+  </div>
+
+  <input type="file" id="importFile"
+    accept=".json,application/json" class="hidden">
+
+</section>
+
+<footer>
+  SISTEMA NACIONAL DE CONTROL DE COBROS Y DEUDORES
+  <br>
+  ALAN 🇲🇽
+</footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ==========================================
+   UTILIDADES
+========================================== */
+
+const $ = id => document.getElementById(id);
+
+const DB_NAME = "ALAN_Control_Cobros";
+const STORE = "personas";
+const LOCAL_KEY = "ALAN_RESPALDO_LOCAL";
+
+let people = [];
+let storageMode = "memoria";
+let database = null;
+let toastTimer = null;
+
+function generarId() {
+  if (window.crypto &&
+      typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+
+  return "ALAN-" + Date.now() + "-" +
+    Math.random().toString(36).slice(2,10);
+}
+
+function money(value) {
+  return new Intl.NumberFormat("es-MX", {
+    style:"currency",
+    currency:"MXN"
+  }).format(Number(value) || 0);
+}
+
+function today() {
+  const d = new Date();
+  const offset = d.getTimezoneOffset();
+
+  return new Date(d.getTime() - offset * 60000)
+    .toISOString().slice(0,10);
+}
+
+function fechaHoraRegistro(value) {
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) {
+    return "Fecha no disponible";
+  }
+
+  return date.toLocaleString("es-MX", {
+    day:"2-digit",
+    month:"2-digit",
+    year:"numeric",
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit",
+    hour12:false
+  });
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
+}
+
+function normalizarTexto(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase()
+    .trim();
+}
+
+function mostrarToast(message) {
+  const toast = $("toast");
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  },3000);
+}
+
+/* ==========================================
+   RELOJ DEL TELÉFONO
+========================================== */
+
+function actualizarReloj() {
+  $("clock").textContent = new Date().toLocaleTimeString(
+    "es-MX",
+    {
+      hour:"2-digit",
+      minute:"2-digit",
+      second:"2-digit",
+      hour12:false
+    }
+  );
+}
+
+actualizarReloj();
+
+setInterval(actualizarReloj,1000);
+
+document.addEventListener("visibilitychange",() => {
+  if (!document.hidden) {
+    actualizarReloj();
+    render();
+  }
+});
+
+/* ==========================================
+   FECHAS Y CUENTA REGRESIVA
+========================================== */
+
+function convertirFechaUTC(dateString) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateString))) {
+    return null;
+  }
+
+  const [year,month,day] = dateString.split("-").map(Number);
+
+  const timestamp = Date.UTC(year,month - 1,day);
+  const date = new Date(timestamp);
+
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return timestamp;
+}
+
+function diferenciaDias(fechaInicial,fechaFinal) {
+  const inicio = convertirFechaUTC(fechaInicial);
+  const final = convertirFechaUTC(fechaFinal);
+
+  if (inicio === null || final === null) {
+    return 0;
+  }
+
+  return Math.round((final - inicio) / 86400000);
+}
+
+function calcularPersona(person) {
+  const diasRestantes = diferenciaDias(today(),person.dueDate);
+
+  const diasAtraso = Math.max(0,-diasRestantes);
+
+  const multa = diasAtraso * Number(person.dailyFine || 0);
+
+  const totalPagado = (person.payments || [])
+    .reduce((sum,p) => sum + Number(p.amount || 0),0);
+
+  const total = Number(person.initialDebt || 0) + multa;
+
+  const saldo = Math.max(0,total - totalPagado);
+
+  let estado = "pendiente";
+
+  if (saldo <= 0) {
+    estado = totalPagado > 0 ? "pagado" : "sin-deuda";
+  } else if (diasRestantes < 0) {
+    estado = "atrasado";
+  } else if (diasRestantes === 0) {
+    estado = "vence-hoy";
+  }
+
+  return {
+    diasRestantes,
+    diasAtraso,
+    multa,
+    totalPagado,
+    total,
+    saldo,
+    estado
+  };
+}
+
+/* ==========================================
+   NORMALIZAR REGISTROS
+========================================== */
+
+function normalizarPersona(person) {
+  const payments = Array.isArray(person.payments)
+    ? person.payments.map(p => ({
+        id:p.id || generarId(),
+        amount:Math.max(0,Number(p.amount) || 0),
+        date:p.date || today(),
+        note:String(p.note || "")
+      }))
+    : [];
+
+  return {
+    id:String(person.id || generarId()),
+
+    name:String(person.name || person.nombre || "Sin nombre"),
+
+    initialDebt:Math.max(0,Number(
+      person.initialDebt ??
+      person.deuda ??
+      person.deudaInicial ??
+      0
+    ) || 0),
+
+    dailyFine:Math.max(0,Number(
+      person.dailyFine ??
+      person.multaDiaria ??
+      0
+    ) || 0),
+
+    dueDate:person.dueDate ||
+      person.fechaVencimiento ||
+      today(),
+
+    phone:String(person.phone || person.telefono || ""),
+
+    notes:String(person.notes || person.observaciones || ""),
+
+    createdAt:person.createdAt || new Date().toISOString(),
+
+    payments
+  };
+}
+
+/* ==========================================
+   ALMACENAMIENTO
+   IndexedDB -> localStorage -> memoria
+========================================== */
+
+function actualizarEstado(text,mode) {
+  const messages = {
+    indexedDB:
+      "✓ Almacenamiento activo: tus datos se guardan en IndexedDB de este navegador.",
+
+    localStorage:
+      "⚠ IndexedDB no está disponible. Se utiliza almacenamiento local.",
+
+    memoria:
+      "⚠ Almacenamiento temporal. Descarga una copia de seguridad para no perder los datos."
+  };
+
+  $("storageNotice").textContent =
+    messages[mode] || text;
+}
+
+function abrirIndexedDB() {
+  return new Promise((resolve,reject) => {
+
+    if (!("indexedDB" in window)) {
+      reject(new Error("IndexedDB no disponible"));
+      return;
+    }
+
+    let request;
+
+    try {
+      request = indexedDB.open(DB_NAME,1);
+    } catch(error) {
+      reject(error);
+      return;
+    }
+
+    request.onupgradeneeded = event => {
+      const db = event.target.result;
+
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE,{keyPath:"id"});
+      }
+    };
+
+    request.onsuccess = () => {
+      database = request.result;
+
+      database.onversionchange = () => {
+        database.close();
+        database = null;
+      };
+
+      resolve(database);
+    };
+
+    request.onerror = () => reject(
+      request.error || new Error("Error abriendo IndexedDB")
+    );
+
+    request.onblocked = () => reject(
+      new Error("IndexedDB bloqueado")
+    );
+
+  });
+}
+
+function leerIndexedDB() {
+  return new Promise((resolve,reject) => {
+
+    try {
+      const transaction = database.transaction(STORE,"readonly");
+      const request = transaction.objectStore(STORE).getAll();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+
+    } catch(error) {
+      reject(error);
+    }
+
+  });
+}
+
+function guardarIndexedDB(data) {
+  return new Promise((resolve,reject) => {
+
+    try {
+      const transaction = database.transaction(STORE,"readwrite");
+      const store = transaction.objectStore(STORE);
+
+      store.clear();
+
+      data.forEach(person => {
+        store.put(person);
+      });
+
+      transaction.oncomplete = () => resolve();
+
+      transaction.onerror = () => reject(transaction.error);
+
+      transaction.onabort = () => reject(transaction.error);
+
+    } catch(error) {
+      reject(error);
+    }
+
+  });
+}
+
+function leerLocalStorage() {
+  const current = localStorage.getItem(LOCAL_KEY);
+
+  if (!current) return [];
+
+  const parsed = JSON.parse(current);
+
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+function guardarLocalStorage(data) {
+  localStorage.setItem(LOCAL_KEY,JSON.stringify(data));
+}
+
+async function inicializar() {
+
+  try {
+
+    await abrirIndexedDB();
+
+    people = (await leerIndexedDB())
+      .map(normalizarPersona);
+
+    storageMode = "indexedDB";
+
+    actualizarEstado("Guardado activo","indexedDB");
+
+    if (people.length === 0) {
+
+      try {
+        const local = leerLocalStorage();
+
+        if (local.length) {
+          people = local.map(normalizarPersona);
+          await guardarIndexedDB(people);
+        }
+
+      } catch(error) {
+        console.warn("No se pudo recuperar el respaldo local.",error);
+      }
+
+    }
+
+  } catch(error) {
+
+    console.warn("IndexedDB no disponible:",error);
+
+    try {
+
+      people = leerLocalStorage().map(normalizarPersona);
+
+      storageMode = "localStorage";
+
+      actualizarEstado("Guardado local","localStorage");
+
+    } catch(localError) {
+
+      people = [];
+
+      storageMode = "memoria";
+
+      actualizarEstado("Memoria temporal","memoria");
+    }
+
+  }
+
+  render();
+}
+
+async function guardarDatos() {
+
+  if (storageMode === "indexedDB") {
+
+    try {
+
+      await guardarIndexedDB(people);
+
+      actualizarEstado("Guardado activo","indexedDB");
+
+      return true;
+
+    } catch(error) {
+
+      console.error("Error IndexedDB:",error);
+
+      storageMode = "localStorage";
+    }
+
+  }
+
+  if (storageMode === "localStorage") {
+
+    try {
+
+      guardarLocalStorage(people);
+
+      actualizarEstado("Guardado local","localStorage");
+
+      return true;
+
+    } catch(error) {
+
+      console.error("Error localStorage:",error);
+
+      storageMode = "memoria";
+    }
+
+  }
+
+  actualizarEstado("Memoria temporal","memoria");
+
+  return false;
+}
+
+/* ==========================================
+   BÚSQUEDA REPARADA
+========================================== */
+
+function buscarPersonas() {
+
+  const query = normalizarTexto($("searchInput").value);
+
+  if (!query) return people.slice();
+
+  return people.filter(person => {
+
+    const nombre = normalizarTexto(person.name);
+    const telefono = normalizarTexto(person.phone);
+    const notas = normalizarTexto(person.notes);
+
+    return (
+      nombre.includes(query) ||
+      telefono.includes(query) ||
+      notas.includes(query)
+    );
+
+  });
+
+}
+
+/* ==========================================
+   RENDERIZAR INFORMACIÓN
+========================================== */
+
+function render() {
+
+  const filtered = buscarPersonas();
+
+  const totalPaid = people.reduce((sum,p) =>
+    sum + calcularPersona(p).totalPagado,0
+  );
+
+  const totalDebt = people.reduce((sum,p) =>
+    sum + calcularPersona(p).saldo,0
+  );
+
+  const late = people.filter(p => {
+    const calc = calcularPersona(p);
+
+    return calc.estado === "atrasado" && calc.saldo > 0;
+  }).length;
+
+  $("totalPeople").textContent = people.length;
+
+  $("totalDebt").textContent = money(totalDebt);
+
+  $("totalPaid").textContent = money(totalPaid);
+
+  $("totalLate").textContent = late;
+
+  $("searchCount").textContent =
+    $("searchInput").value.trim()
+      ? filtered.length + " resultado(s) de " + people.length + " persona(s)"
+      : people.length + " persona(s) registrada(s)";
+
+  if (!filtered.length) {
+
+    $("peopleList").innerHTML = `
+      <div class="empty">
+        ${people.length
+          ? "No se encontraron resultados para tu búsqueda."
+          : "Todavía no hay personas registradas."}
+      </div>
+    `;
+
+    return;
+  }
+
+  $("peopleList").innerHTML = filtered.map(person => {
+
+    const calc = calcularPersona(person);
+
+    const atrasado = calc.estado === "atrasado";
+
+    const pagado = calc.estado === "pagado";
+
+    let tagClass = "ok";
+    let tagText = "PENDIENTE";
+
+    if (calc.estado === "atrasado") {
+      tagClass = "late";
+      tagText = "ATRASADO";
+    } else if (calc.estado === "vence-hoy") {
+      tagClass = "today";
+      tagText = "VENCE HOY";
+    } else if (calc.estado === "pagado") {
+      tagClass = "paid";
+      tagText = "PAGADO";
+    } else if (calc.estado === "sin-deuda") {
+      tagClass = "ok";
+      tagText = "SIN DEUDA";
+    }
+
+    let countdownHTML = "";
+
+    if (calc.saldo <= 0) {
+
+      countdownHTML = `
+        <div class="countdown">
+          <span class="countdown-label">ESTADO DE LA CUENTA</span>
+          <span class="countdown-number" style="font-size:22px">
+            ${calc.estado === "pagado" ? "PAGADO" : "SIN DEUDA"}
+          </span>
+          <small>Saldo pendiente: ${money(calc.saldo)}</small>
+        </div>
+      `;
+
+    } else if (calc.diasRestantes > 0) {
+
+      const warning = calc.diasRestantes <= 3;
+
+      countdownHTML = `
+        <div class="countdown ${warning ? "warning" : ""}">
+          <span class="countdown-label">
+            CUENTA REGRESIVA PARA PAGAR
+          </span>
+
+          <span class="countdown-number">
+            ${calc.diasRestantes} ${calc.diasRestantes === 1 ? "DÍA" : "DÍAS"}
+          </span>
+
+          <small>
+            Faltan ${calc.diasRestantes} días para el vencimiento.
+          </small>
+        </div>
+      `;
+
+    } else if (calc.diasRestantes === 0) {
+
+      countdownHTML = `
+        <div class="countdown warning">
+          <span class="countdown-label">CUENTA REGRESIVA</span>
+          <span class="countdown-number">0 DÍAS</span>
+          <small>La deuda vence hoy.</small>
+        </div>
+      `;
+
+    } else {
+
+      countdownHTML = `
+        <div class="countdown danger">
+          <span class="countdown-label">DÍAS DE ATRASO</span>
+          <span class="countdown-number">
+            ${calc.diasAtraso} ${calc.diasAtraso === 1 ? "DÍA" : "DÍAS"}
+          </span>
+          <small>
+            Se acumula una multa de ${money(person.dailyFine)} por día.
+          </small>
+        </div>
+      `;
+
+    }
+
+    const payments = person.payments.length
+      ? person.payments.map(payment => `
+          <div class="payment-row">
+
+            <span>
+              ${escapeHTML(payment.date)}
+              ${payment.note
+                ? " · " + escapeHTML(payment.note)
+                : ""}
+            </span>
+
+            <strong>${money(payment.amount)}</strong>
+
+          </div>
+        `).join("")
+      : `
+        <p style="font-size:12px;color:#888">
+          Sin abonos registrados.
+        </p>
+      `;
+
+    return `
+
+      <article class="person" data-person-id="${escapeHTML(person.id)}">
+
+        <div class="person-top">
+
+          <div>
+
+            <div class="person-name">
+              ${escapeHTML(person.name)}
+            </div>
+
+            <div class="person-date">
+
+              ${person.phone
+                ? "☎ " + escapeHTML(person.phone) + "<br>"
+                : ""}
+
+              Registro: ${escapeHTML(fechaHoraRegistro(person.createdAt))}
+              <br>
+
+              Vencimiento: ${escapeHTML(person.dueDate)}
+
+            </div>
+
+          </div>
+
+          <span class="tag ${tagClass}">
+            ${tagText}
+          </span>
+
+        </div>
+
+        ${countdownHTML}
+
+        <div class="balance">
+          ${money(calc.saldo)}
+        </div>
+
+        <div class="details">
+
+          <div class="detail">
+            <span>Deuda inicial</span>
+            <strong>${money(person.initialDebt)}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Multa acumulada</span>
+            <strong>${money(calc.multa)}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Total pagado</span>
+            <strong>${money(calc.totalPagado)}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Multa por día</span>
+            <strong>${money(person.dailyFine)}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Días de atraso</span>
+            <strong>${calc.diasAtraso}</strong>
+          </div>
+
+          <div class="detail">
+            <span>Deuda + multa</span>
+            <strong>${money(calc.total)}</strong>
+          </div>
+
+        </div>
+
+        ${person.notes ? `
+          <p style="font-size:12px;color:#666;margin-top:10px;line-height:1.5">
+            ${escapeHTML(person.notes)}
+          </p>
+        ` : ""}
+
+        <div class="payments">
+
+          <strong style="font-size:13px">
+            Historial de abonos
+          </strong>
+
+          <div style="margin-top:7px">
+            ${payments}
+          </div>
+
+        </div>
+
+        <div class="actions">
+
+          ${calc.saldo > 0 ? `
+            <button class="btn-green btn-small"
+              type="button"
+              data-action="pay"
+              data-id="${escapeHTML(person.id)}">
+              + ABONAR
+            </button>
+          ` : ""}
+
+          <button class="btn-gray btn-small"
+            type="button"
+            data-action="edit"
+            data-id="${escapeHTML(person.id)}">
+            EDITAR
+          </button>
+
+          <button class="btn-danger btn-small"
+            type="button"
+            data-action="delete"
+            data-id="${escapeHTML(person.id)}">
+            ELIMINAR
+          </button>
+
+        </div>
+
+      </article>
+
+    `;
+
+  }).join("");
+
+}
+
+/* ==========================================
+   GUARDAR Y EDITAR PERSONAS
+========================================== */
+
+function limpiarFormulario() {
+
+  $("personForm").reset();
+
+  $("personId").value = "";
+
+  $("dailyFine").value = "0";
+
+  $("formTitle").textContent = "➕ Registrar persona";
+
+  $("savePersonBtn").textContent = "GUARDAR PERSONA";
+
+  $("cancelEditBtn").classList.add("hidden");
+
+}
+
+function editarPersona(id) {
+
+  const person = people.find(p => p.id === id);
+
+  if (!person) {
+    mostrarToast("No se encontró la persona.");
+    return;
+  }
+
+  $("personId").value = person.id;
+
+  $("personName").value = person.name;
+
+  $("initialDebt").value = person.initialDebt;
+
+  $("dailyFine").value = person.dailyFine;
+
+  $("dueDate").value = person.dueDate;
+
+  $("personPhone").value = person.phone;
+
+  $("personNotes").value = person.notes;
+
+  $("formTitle").textContent = "✏️ Editar persona";
+
+  $("savePersonBtn").textContent = "GUARDAR CAMBIOS";
+
+  $("cancelEditBtn").classList.remove("hidden");
+
+  $("paymentPanel").classList.add("hidden");
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+$("personForm").addEventListener("submit",async event => {
+
+  event.preventDefault();
+
+  const id = $("personId").value;
+
+  const name = $("personName").value.trim();
+
+  const initialDebt = Number($("initialDebt").value);
+
+  const dailyFine = Number($("dailyFine").value);
+
+  const dueDate = $("dueDate").value;
+
+  const phone = $("personPhone").value.trim();
+
+  const notes = $("personNotes").value.trim();
+
+  if (!name) {
+    mostrarToast("Introduce el nombre de la persona.");
+    return;
+  }
+
+  if (!Number.isFinite(initialDebt) || initialDebt < 0) {
+    mostrarToast("La deuda inicial no puede ser negativa.");
+    return;
+  }
+
+  if (!Number.isFinite(dailyFine) || dailyFine < 0) {
+    mostrarToast("La multa diaria no puede ser negativa.");
+    return;
+  }
+
+  if (convertirFechaUTC(dueDate) === null) {
+    mostrarToast("Selecciona una fecha de vencimiento válida.");
+    return;
+  }
+
+  const existing = id
+    ? people.find(p => p.id === id)
+    : null;
+
+  const person = {
+    id:existing ? existing.id : generarId(),
+
+    name,
+
+    initialDebt,
+
+    dailyFine,
+
+    dueDate,
+
+    phone,
+
+    notes,
+
+    createdAt:existing
+      ? existing.createdAt
+      : new Date().toISOString(),
+
+    payments:existing
+      ? existing.payments
+      : []
+  };
+
+  if (existing) {
+
+    const index = people.findIndex(p => p.id === id);
+
+    people[index] = person;
+
+  } else {
+
+    people.unshift(person);
+
+  }
+
+  const saved = await guardarDatos();
+
+  render();
+
+  limpiarFormulario();
+
+  mostrarToast(
+    saved
+      ? (existing ? "Persona actualizada correctamente." : "Persona registrada correctamente.")
+      : "Registro realizado, pero no se pudo guardar permanentemente. Descarga una copia."
+  );
+
+});
+
+/* ==========================================
+   CANCELAR EDICIÓN
+========================================== */
+
+$("cancelEditBtn").addEventListener("click",() => {
+
+  limpiarFormulario();
+
+  mostrarToast("Edición cancelada.");
+
+});
+
+/* ==========================================
+   REGISTRAR ABONOS
+========================================== */
+
+function abrirAbono(id) {
+
+  const person = people.find(p => p.id === id);
+
+  if (!person) {
+    mostrarToast("No se encontró la persona.");
+    return;
+  }
+
+  const calc = calcularPersona(person);
+
+  if (calc.saldo <= 0) {
+    mostrarToast("Esta persona no tiene saldo pendiente.");
+    return;
+  }
+
+  $("paymentPersonId").value = id;
+
+  $("paymentPersonName").textContent =
+    person.name + " · Saldo: " + money(calc.saldo);
+
+  $("paymentAmount").value = "";
+
+  $("paymentAmount").max = calc.saldo.toFixed(2);
+
+  $("paymentDate").value = today();
+
+  $("paymentNote").value = "";
+
+  $("paymentPanel").classList.remove("hidden");
+
+  window.scrollTo({
+    top:$("paymentPanel").offsetTop - 10,
+    behavior:"smooth"
+  });
+
+}
+
+$("paymentForm").addEventListener("submit",async event => {
+
+  event.preventDefault();
+
+  const id = $("paymentPersonId").value;
+
+  const person = people.find(p => p.id === id);
+
+  if (!person) {
+    mostrarToast("No se encontró la persona.");
+    return;
+  }
+
+  const amount = Number($("paymentAmount").value);
+
+  const date = $("paymentDate").value;
+
+  const note = $("paymentNote").value.trim();
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    mostrarToast("Introduce una cantidad válida.");
+    return;
+  }
+
+  if (convertirFechaUTC(date) === null) {
+    mostrarToast("Selecciona una fecha de abono válida.");
+    return;
+  }
+
+  const calc = calcularPersona(person);
+
+  if (amount > calc.saldo + 0.000001) {
+    mostrarToast(
+      "El abono no puede superar el saldo pendiente de " +
+      money(calc.saldo)
+    );
+    return;
+  }
+
+  person.payments.push({
+
+    id:generarId(),
+
+    amount,
+
+    date,
+
+    note
+
+  });
+
+  const saved = await guardarDatos();
+
+  $("paymentForm").reset();
+
+  $("paymentPanel").classList.add("hidden");
+
+  render();
+
+  mostrarToast(
+    saved
+      ? "Abono registrado correctamente."
+      : "Abono registrado, pero el almacenamiento permanente no está disponible. Descarga una copia."
+  );
+
+});
+
+$("cancelPaymentBtn").addEventListener("click",() => {
+
+  $("paymentPanel").classList.add("hidden");
+
+  $("paymentForm").reset();
+
+});
+
+/* ==========================================
+   ACCIONES DE CADA PERSONA
+========================================== */
+
+$("peopleList").addEventListener("click",async event => {
+
+  const button = event.target.closest("button[data-action]");
+
+  if (!button) return;
+
+  const id = button.dataset.id;
+
+  const action = button.dataset.action;
+
+  if (action === "pay") {
+
+    abrirAbono(id);
+
+  } else if (action === "edit") {
+
+    editarPersona(id);
+
+  } else if (action === "delete") {
+
+    const person = people.find(p => p.id === id);
+
+    if (!person) return;
+
+    const confirmed = confirm(
+      "¿Seguro que deseas eliminar a " +
+      person.name +
+      "?\n\nTambién se eliminará su historial de abonos."
+    );
+
+    if (!confirmed) return;
+
+    people = people.filter(p => p.id !== id);
+
+    const saved = await guardarDatos();
+
+    render();
+
+    mostrarToast(
+      saved
+        ? "Persona eliminada correctamente."
+        : "Persona eliminada de la sesión. No se pudo confirmar el guardado permanente."
+    );
+
+  }
+
+});
+
+/* ==========================================
+   BÚSQUEDA EN TIEMPO REAL
+========================================== */
+
+$("searchInput").addEventListener("input",() => {
+
+  render();
+
+});
+
+/* ==========================================
+   EXPORTAR COPIA DE SEGURIDAD
+========================================== */
+
+$("exportBtn").addEventListener("click",() => {
+
+  const backup = {
+
+    application:"ALAN_CONTROL_COBROS",
+
+    version:2,
+
+    exportDate:new Date().toISOString(),
+
+    people
+
+  };
+
+  const content = JSON.stringify(backup,null,2);
+
+  const blob = new Blob(
+    [content],
+    {type:"application/json;charset=utf-8"}
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+
+  link.href = url;
+
+  link.download =
+    "ALAN_Copia_Seguridad_" + today() + ".json";
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url),1000);
+
+  mostrarToast("Copia de seguridad descargada.");
+
+});
+
+/* ==========================================
+   IMPORTAR COPIA DE SEGURIDAD
+========================================== */
+
+$("importBtn").addEventListener("click",() => {
+
+  $("importFile").click();
+
+});
+
+$("importFile").addEventListener("change",async event => {
+
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  try {
+
+    const text = await file.text();
+
+    const data = JSON.parse(text);
+
+    const imported = Array.isArray(data)
+      ? data
+      : data.people;
+
+    if (!Array.isArray(imported)) {
+      throw new Error("El archivo no contiene una lista válida de personas.");
+    }
+
+    if (imported.length > 10000) {
+      throw new Error("El archivo contiene demasiados registros.");
+    }
+
+    const normalized = imported.map(normalizarPersona);
+
+    const ids = new Set();
+
+    for (const person of normalized) {
+
+      if (ids.has(person.id)) {
+        person.id = generarId();
+      }
+
+      ids.add(person.id);
+
+    }
+
+    const confirmed = confirm(
+      "Se encontraron " + normalized.length +
+      " personas.\n\n" +
+      "Restaurar esta copia reemplazará los registros actuales.\n\n" +
+      "¿Deseas continuar?"
+    );
+
+    if (!confirmed) {
+      event.target.value = "";
+      return;
+    }
+
+    people = normalized;
+
+    const saved = await guardarDatos();
+
+    $("searchInput").value = "";
+
+    limpiarFormulario();
+
+    $("paymentPanel").classList.add("hidden");
+
+    render();
+
+    mostrarToast(
+      saved
+        ? "Copia restaurada correctamente."
+        : "Copia cargada en esta sesión, pero no se pudo guardar permanentemente."
+    );
+
+  } catch(error) {
+
+    console.error("Error importando copia:",error);
+
+    alert(
+      "No se pudo restaurar el archivo.\n\n" +
+      (error.message || "El archivo no es válido.")
+    );
+
+  }
+
+  event.target.value = "";
+
+});
+
+/* ==========================================
+   ACTUALIZACIÓN AUTOMÁTICA DE CUENTAS
+========================================== */
+
+// Actualiza la cuenta regresiva y las multas
+// cuando cambia el día, sin modificar los registros.
+
+let ultimoDia = today();
+
+setInterval(() => {
+
+  const diaActual = today();
+
+  if (diaActual !== ultimoDia) {
+
+    ultimoDia = diaActual;
+
+    render();
+
+  }
+
+},30000);
+
+/* ==========================================
+   INICIAR SISTEMA
+========================================== */
+
+inicializar();
+
+</script>
+
+</body>
+</html>
