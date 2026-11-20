@@ -2020,10 +2020,16 @@ setInterval(() => {
 const ALAN_SUPABASE_URL="https://fkmeyjanwfdqlkwgipbd.supabase.co";
 const ALAN_SUPABASE_KEY="sb_publishable_mGg5smJ2n7fwihq2IzDfbw_AHU2qv3C";
 const ALAN_LOCAL_OWNER="ALAN_COBROS_LOCAL_OWNER";
+const ALAN_CLOUD_INIT_PREFIX="ALAN_COBROS_CLOUD_INIT_";
 let alanClient=null, alanUser=null, alanChannel=null, alanBusy=false;
 let alanKnownPeople=new Set(), alanKnownPayments=new Set();
 function alanMsg(t,c){const e=document.getElementById("authMessage");e.textContent=t;e.className="auth-message"+(c?" "+c:"");}
-function alanUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||""))?v:crypto.randomUUID();}
+function alanUuid(v){
+ if(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||"")))return v;
+ if(crypto.randomUUID)return crypto.randomUUID();
+ const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+ const x=[...b].map(n=>n.toString(16).padStart(2,"0")).join("");return x.slice(0,8)+"-"+x.slice(8,12)+"-"+x.slice(12,16)+"-"+x.slice(16,20)+"-"+x.slice(20);
+}
 function alanShowApp(){document.getElementById("authScreen").classList.add("hidden");document.querySelector(".app").classList.remove("hidden");}
 function alanShowLogin(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");}
 async function alanLoadCloud(){
@@ -2033,7 +2039,10 @@ async function alanLoadCloud(){
  const map=new Map();(a.data||[]).forEach(x=>{if(!map.has(x.person_id))map.set(x.person_id,[]);map.get(x.person_id).push({id:x.id,amount:Number(x.amount),date:x.payment_date,note:x.note||""});});
  people=(p.data||[]).map(x=>normalizarPersona({id:x.id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
  storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();
- try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);}catch(e){console.warn(e);}
+ const cloudWasInitialized=localStorage.getItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id)==="1";
+ if((p.data||[]).length>0||cloudWasInitialized){
+  try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);localStorage.setItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id,"1");}catch(e){console.warn(e);}
+ }
 }
 async function alanSaveCloud(){
  if(!alanClient||!alanUser)return false;
@@ -2051,7 +2060,7 @@ async function alanSaveCloud(){
   if(pr.length){const {error}=await alanClient.from("alan_people").upsert(pr,{onConflict:"id"});if(error)throw error;}
   if(ar.length){const {error}=await alanClient.from("alan_payments").upsert(ar,{onConflict:"id"});if(error)throw error;}
   alanKnownPeople=nowP;alanKnownPayments=nowA;
-  try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);}catch(e){console.warn(e);}
+  try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);localStorage.setItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id,"1");}catch(e){console.warn(e);}
   document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";return true;
  }catch(e){console.error(e);mostrarToast("No se pudo sincronizar: "+(e.message||"error de conexión"));return false;}finally{alanBusy=false;}
 }
@@ -2066,6 +2075,7 @@ async function alanActivate(session){
    if(!await alanSaveCloud())throw new Error("No se pudo migrar la copia local.");
    await alanLoadCloud();alanMsg("Los registros de este dispositivo se copiaron a tu cuenta.","success");
   }else{alanMsg("Sesión iniciada. Tus registros están sincronizados.","success");}
+  if(cloudCount===0&&!local.length&&!localOwner){localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);localStorage.setItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id,"1");}
   if(alanChannel)await alanClient.removeChannel(alanChannel);
   const uid=alanUser.id;
   alanChannel=alanClient.channel("alan-sync-"+uid)
