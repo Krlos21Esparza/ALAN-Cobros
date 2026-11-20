@@ -521,7 +521,7 @@ footer {
 <p class="auth-subtitle">Inicia sesión para consultar tus registros desde cualquiera de tus dispositivos.</p>
 <form id="authForm">
 <div class="field"><label for="authEmail">Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" required></div>
-<div class="field"><label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Mínimo 8 caracteres"></div>
+<div class="field"><label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Mínimo 8 caracteres"><label class="auth-show-password" style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;cursor:pointer"><input id="authShowPassword" type="checkbox" style="width:16px;height:16px;margin:0"> Mostrar contraseña</label></div>
 <button class="btn-red" id="authLoginBtn" type="submit">INICIAR SESIÓN</button>
 <button class="btn-black" id="authSignupBtn" type="button">CREAR CUENTA NUEVA</button>
 </form><p id="authMessage" class="auth-message" role="status" aria-live="polite">Tus datos estarán protegidos por tu cuenta.</p>
@@ -2094,6 +2094,7 @@ inicializar=async function(){
  }catch(e){alanShowLogin();alanMsg(e.message||"No se pudo conectar.","error");}
 };
 guardarDatos=alanSaveCloud;
+document.getElementById("authShowPassword").addEventListener("change",e=>{document.getElementById("authPassword").type=e.target.checked?"text":"password";});
 document.getElementById("authForm").addEventListener("submit",async e=>{e.preventDefault();const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;document.getElementById("authLoginBtn").disabled=true;document.getElementById("authSignupBtn").disabled=true;alanMsg("Iniciando sesión...");try{const {data,error}=await alanClient.auth.signInWithPassword({email,password});if(error)throw error;await alanActivate(data.session);}catch(x){alanMsg(x.message||"No se pudo iniciar sesión.","error");}finally{document.getElementById("authLoginBtn").disabled=false;document.getElementById("authSignupBtn").disabled=false;}});
 document.getElementById("authSignupBtn").addEventListener("click",async()=>{const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;if(!email||!email.includes("@")){alanMsg("Escribe un correo electrónico válido.","error");return;}if(password.length<8){alanMsg("La contraseña debe tener al menos 8 caracteres.","error");return;}alanMsg("Creando cuenta...");try{const {data,error}=await alanClient.auth.signUp({email,password});if(error)throw error;if(data.session)await alanActivate(data.session);else alanMsg("Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.","success");}catch(x){alanMsg(x.message||"No se pudo crear la cuenta.","error");}});
 document.getElementById("signOutBtn").addEventListener("click",async()=>{const {error}=await alanClient.auth.signOut();if(error)mostrarToast(error.message);});
