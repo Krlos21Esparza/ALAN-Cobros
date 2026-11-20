@@ -501,12 +501,32 @@ footer {
 @media(min-width:700px) {
   .stats {grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#eee}
+.auth-card{width:100%;max-width:420px;background:#fff;border-radius:18px;padding:26px;box-shadow:0 12px 40px rgba(0,0,0,.1)}
+.auth-brand{font-size:30px;font-weight:900;color:var(--red);margin-bottom:6px}
+.auth-subtitle{font-size:13px;color:#666;line-height:1.5;margin-bottom:20px}
+.auth-card .field{margin-bottom:14px}
+.auth-card button{width:100%;min-height:46px;margin-top:8px}
+.auth-message{font-size:13px;line-height:1.5;margin-top:14px;color:#555;overflow-wrap:anywhere}
+.auth-message.error{color:#b00020}.auth-message.success{color:#16743c}
+.btn-signout{background:#333;color:#fff;padding:8px 10px;font-size:11px}
 </style>
 </head>
 
 <body>
 
-<div class="app">
+<section id="authScreen" class="auth-screen"><div class="auth-card">
+<div class="auth-brand">ALAN 🇲🇽</div>
+<p class="auth-subtitle">Inicia sesión para consultar tus registros desde cualquiera de tus dispositivos.</p>
+<form id="authForm">
+<div class="field"><label for="authEmail">Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" required></div>
+<div class="field"><label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Mínimo 8 caracteres"></div>
+<button class="btn-red" id="authLoginBtn" type="submit">INICIAR SESIÓN</button>
+<button class="btn-black" id="authSignupBtn" type="button">CREAR CUENTA NUEVA</button>
+</form><p id="authMessage" class="auth-message" role="status" aria-live="polite">Tus datos estarán protegidos por tu cuenta.</p>
+</div></section>
+<div class="app hidden">
 
 <header>
   <div class="top">
@@ -515,9 +535,7 @@ footer {
       <small>SISTEMA DE CONTROL DE COBROS</small>
     </div>
 
-    <div class="status">
-      🕒 <span id="clock">--:--:--</span>
-    </div>
+    <div style="display:flex;align-items:center;gap:8px"><div class="status">🕒 <span id="clock">--:--:--</span></div><button class="btn-signout" id="signOutBtn" type="button">SALIR</button></div>
   </div>
 </header>
 
@@ -722,6 +740,7 @@ footer {
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
@@ -1996,8 +2015,80 @@ setInterval(() => {
    INICIAR SISTEMA
 ========================================== */
 
+</script>
+<script>
+const ALAN_SUPABASE_URL="https://fkmeyjanwfdqlkwgipbd.supabase.co";
+const ALAN_SUPABASE_KEY="sb_publishable_mGg5smJ2n7fwihq2IzDfbw_AHU2qv3C";
+const ALAN_LOCAL_OWNER="ALAN_COBROS_LOCAL_OWNER";
+let alanClient=null, alanUser=null, alanChannel=null, alanBusy=false;
+let alanKnownPeople=new Set(), alanKnownPayments=new Set();
+function alanMsg(t,c){const e=document.getElementById("authMessage");e.textContent=t;e.className="auth-message"+(c?" "+c:"");}
+function alanUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||""))?v:crypto.randomUUID();}
+function alanShowApp(){document.getElementById("authScreen").classList.add("hidden");document.querySelector(".app").classList.remove("hidden");}
+function alanShowLogin(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");}
+async function alanLoadCloud(){
+ const [p,a]=await Promise.all([alanClient.from("alan_people").select("*").order("created_at",{ascending:false}),alanClient.from("alan_payments").select("*").order("payment_date",{ascending:false})]);
+ if(p.error)throw p.error;if(a.error)throw a.error;
+ alanKnownPeople=new Set((p.data||[]).map(x=>x.id));alanKnownPayments=new Set((a.data||[]).map(x=>x.id));
+ const map=new Map();(a.data||[]).forEach(x=>{if(!map.has(x.person_id))map.set(x.person_id,[]);map.get(x.person_id).push({id:x.id,amount:Number(x.amount),date:x.payment_date,note:x.note||""});});
+ people=(p.data||[]).map(x=>normalizarPersona({id:x.id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
+ storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();
+ try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);}catch(e){console.warn(e);}
+}
+async function alanSaveCloud(){
+ if(!alanClient||!alanUser)return false;
+ try{
+  alanBusy=true;
+  const normalized=people.map(p=>({...p,id:alanUuid(p.id),payments:(p.payments||[]).map(a=>({...a,id:alanUuid(a.id)}))}));
+  people=normalized;
+  const pr=people.map(p=>({id:p.id,owner_id:alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
+  const ar=people.flatMap(p=>(p.payments||[]).map(a=>({id:a.id,owner_id:alanUser.id,person_id:p.id,amount:Number(a.amount||0),payment_date:a.date||today(),note:a.note||""})));
+  const nowP=new Set(pr.map(x=>x.id)),nowA=new Set(ar.map(x=>x.id));
+  const goneA=[...alanKnownPayments].filter(x=>!nowA.has(x));
+  const goneP=[...alanKnownPeople].filter(x=>!nowP.has(x));
+  for(const id of goneA){const {error}=await alanClient.from("alan_payments").delete().eq("id",id).eq("owner_id",alanUser.id);if(error)throw error;}
+  for(const id of goneP){const {error}=await alanClient.from("alan_payments").delete().eq("person_id",id).eq("owner_id",alanUser.id);if(error)throw error;const {error:e}=await alanClient.from("alan_people").delete().eq("id",id).eq("owner_id",alanUser.id);if(e)throw e;}
+  if(pr.length){const {error}=await alanClient.from("alan_people").upsert(pr,{onConflict:"id"});if(error)throw error;}
+  if(ar.length){const {error}=await alanClient.from("alan_payments").upsert(ar,{onConflict:"id"});if(error)throw error;}
+  alanKnownPeople=nowP;alanKnownPayments=nowA;
+  try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);}catch(e){console.warn(e);}
+  document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";return true;
+ }catch(e){console.error(e);mostrarToast("No se pudo sincronizar: "+(e.message||"error de conexión"));return false;}finally{alanBusy=false;}
+}
+async function alanActivate(session){
+ if(!session||!session.user)return;alanUser=session.user;alanShowApp();
+ try{
+  await alanLoadCloud();
+  const cloudCount=alanKnownPeople.size,localOwner=localStorage.getItem(ALAN_LOCAL_OWNER);let local=[];
+  try{if(database)local=(await leerIndexedDB()).map(normalizarPersona);if(!local.length)local=leerLocalStorage().map(normalizarPersona);}catch(e){console.warn(e);}
+  if(cloudCount===0&&local.length&&(!localOwner||localOwner===alanUser.id)){
+   people=local.map(p=>({...p,id:alanUuid(p.id),payments:(p.payments||[]).map(a=>({...a,id:alanUuid(a.id)}))}));
+   if(!await alanSaveCloud())throw new Error("No se pudo migrar la copia local.");
+   await alanLoadCloud();alanMsg("Los registros de este dispositivo se copiaron a tu cuenta.","success");
+  }else{alanMsg("Sesión iniciada. Tus registros están sincronizados.","success");}
+  if(alanChannel)await alanClient.removeChannel(alanChannel);
+  const uid=alanUser.id;
+  alanChannel=alanClient.channel("alan-sync-"+uid)
+   .on("postgres_changes",{event:"*",schema:"public",table:"alan_people",filter:"owner_id=eq."+uid},()=>{if(!alanBusy)alanLoadCloud().catch(console.warn);})
+   .on("postgres_changes",{event:"*",schema:"public",table:"alan_payments",filter:"owner_id=eq."+uid},()=>{if(!alanBusy)alanLoadCloud().catch(console.warn);}).subscribe();
+ }catch(e){console.error(e);alanMsg("No se pudieron cargar tus registros: "+(e.message||"error"),"error");}
+}
+inicializar=async function(){
+ try{await abrirIndexedDB();people=(await leerIndexedDB()).map(normalizarPersona);}catch(e){try{people=leerLocalStorage().map(normalizarPersona);}catch(x){people=[];}}
+ try{
+  if(!window.supabase||!window.supabase.createClient)throw new Error("No se pudo cargar el servicio de acceso. Comprueba internet.");
+  alanClient=window.supabase.createClient(ALAN_SUPABASE_URL,ALAN_SUPABASE_KEY);
+  const {data,error}=await alanClient.auth.getSession();if(error)throw error;
+  if(data.session)await alanActivate(data.session);else{alanShowLogin();alanMsg("Inicia sesión o crea una cuenta para consultar tus registros en otros dispositivos.");}
+  alanClient.auth.onAuthStateChange((_event,session)=>setTimeout(()=>{if(session)alanActivate(session);else{alanUser=null;if(alanChannel)alanClient.removeChannel(alanChannel);alanChannel=null;alanShowLogin();}},0));
+ }catch(e){alanShowLogin();alanMsg(e.message||"No se pudo conectar.","error");}
+};
+guardarDatos=alanSaveCloud;
+document.getElementById("authForm").addEventListener("submit",async e=>{e.preventDefault();const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;document.getElementById("authLoginBtn").disabled=true;document.getElementById("authSignupBtn").disabled=true;alanMsg("Iniciando sesión...");try{const {data,error}=await alanClient.auth.signInWithPassword({email,password});if(error)throw error;await alanActivate(data.session);}catch(x){alanMsg(x.message||"No se pudo iniciar sesión.","error");}finally{document.getElementById("authLoginBtn").disabled=false;document.getElementById("authSignupBtn").disabled=false;}});
+document.getElementById("authSignupBtn").addEventListener("click",async()=>{const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;if(!email||!email.includes("@")){alanMsg("Escribe un correo electrónico válido.","error");return;}if(password.length<8){alanMsg("La contraseña debe tener al menos 8 caracteres.","error");return;}alanMsg("Creando cuenta...");try{const {data,error}=await alanClient.auth.signUp({email,password});if(error)throw error;if(data.session)await alanActivate(data.session);else alanMsg("Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.","success");}catch(x){alanMsg(x.message||"No se pudo crear la cuenta.","error");}});
+document.getElementById("signOutBtn").addEventListener("click",async()=>{const {error}=await alanClient.auth.signOut();if(error)mostrarToast(error.message);});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&alanUser)alanLoadCloud().catch(console.warn);});
 inicializar();
-
 </script>
 
 </body>
