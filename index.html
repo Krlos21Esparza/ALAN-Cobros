@@ -565,6 +565,7 @@ footer {
   </div>
 </header>
 
+<div id="alanAdminBadge" class="notice hidden" style="background:#171717;color:#fff;border-left:5px solid #d71920"><strong>SUPERADMINISTRADOR</strong> · Acceso global de gestión habilitado para todos los registros del proyecto.</div>
 <div class="notice" id="storageNotice">
   Preparando almacenamiento de datos...
 </div>
@@ -966,6 +967,7 @@ function normalizarPersona(person) {
   const payments = Array.isArray(person.payments)
     ? person.payments.map(p => ({
         id:p.id || generarId(),
+        ownerId:p.ownerId || p.owner_id || person.ownerId || person.owner_id || null,
         amount:Math.max(0,Number(p.amount) || 0),
         date:p.date || today(),
         note:String(p.note || "")
@@ -974,6 +976,7 @@ function normalizarPersona(person) {
 
   return {
     id:String(person.id || generarId()),
+    ownerId:person.ownerId || person.owner_id || null,
 
     name:String(person.name || person.nombre || "Sin nombre"),
 
@@ -2057,7 +2060,8 @@ function alanUuid(v){
  const b=new Uint8Array(16);crypto.getRandomValues(b);b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
  const x=[...b].map(n=>n.toString(16).padStart(2,"0")).join("");return x.slice(0,8)+"-"+x.slice(8,12)+"-"+x.slice(12,16)+"-"+x.slice(16,20)+"-"+x.slice(20);
 }
-function alanShowApp(){document.getElementById("authScreen").classList.add("hidden");document.querySelector(".app").classList.remove("hidden");}
+function alanShowApp(){document.getElementById("authScreen").classList.add("hidden");document.querySelector(".app").classList.remove("hidden");const badge=document.getElementById("alanAdminBadge");if(badge)badge.classList.toggle("hidden",!alanIsSuperadmin());}
+function alanIsSuperadmin(){return !!(alanUser&&alanUser.app_metadata&&alanUser.app_metadata.role==="superadmin");}
 
 function alanShowLogin(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");}
 function alanShowPasswordRecovery(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");document.getElementById("authForm").classList.add("hidden");document.getElementById("forgotPasswordPanel").classList.add("hidden");document.getElementById("newPasswordPanel").classList.remove("hidden");alanMsg("Verifica tu nueva contraseña. Estás usando un enlace seguro de recuperación.");}
@@ -2067,8 +2071,8 @@ async function alanLoadCloud(){
  const [p,a]=await Promise.all([alanClient.from("alan_people").select("*").order("created_at",{ascending:false}),alanClient.from("alan_payments").select("*").order("payment_date",{ascending:false})]);
  if(p.error)throw p.error;if(a.error)throw a.error;
  alanKnownPeople=new Set((p.data||[]).map(x=>x.id));alanKnownPayments=new Set((a.data||[]).map(x=>x.id));
- const map=new Map();(a.data||[]).forEach(x=>{if(!map.has(x.person_id))map.set(x.person_id,[]);map.get(x.person_id).push({id:x.id,amount:Number(x.amount),date:x.payment_date,note:x.note||""});});
- people=(p.data||[]).map(x=>normalizarPersona({id:x.id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
+ const map=new Map();(a.data||[]).forEach(x=>{if(!map.has(x.person_id))map.set(x.person_id,[]);map.get(x.person_id).push({id:x.id,ownerId:x.owner_id,amount:Number(x.amount),date:x.payment_date,note:x.note||""});});
+ people=(p.data||[]).map(x=>normalizarPersona({id:x.id,ownerId:x.owner_id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
  storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();
  const cloudWasInitialized=localStorage.getItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id)==="1";
  if((p.data||[]).length>0||cloudWasInitialized){
@@ -2081,13 +2085,13 @@ async function alanSaveCloud(){
   alanBusy=true;
   const normalized=people.map(p=>({...p,id:alanUuid(p.id),payments:(p.payments||[]).map(a=>({...a,id:alanUuid(a.id)}))}));
   people=normalized;
-  const pr=people.map(p=>({id:p.id,owner_id:alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
-  const ar=people.flatMap(p=>(p.payments||[]).map(a=>({id:a.id,owner_id:alanUser.id,person_id:p.id,amount:Number(a.amount||0),payment_date:a.date||today(),note:a.note||""})));
+  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
+  const ar=people.flatMap(p=>(p.payments||[]).map(a=>({id:a.id,owner_id:a.ownerId||p.ownerId||alanUser.id,person_id:p.id,amount:Number(a.amount||0),payment_date:a.date||today(),note:a.note||""})));
   const nowP=new Set(pr.map(x=>x.id)),nowA=new Set(ar.map(x=>x.id));
   const goneA=[...alanKnownPayments].filter(x=>!nowA.has(x));
   const goneP=[...alanKnownPeople].filter(x=>!nowP.has(x));
-  for(const id of goneA){const {error}=await alanClient.from("alan_payments").delete().eq("id",id).eq("owner_id",alanUser.id);if(error)throw error;}
-  for(const id of goneP){const {error}=await alanClient.from("alan_payments").delete().eq("person_id",id).eq("owner_id",alanUser.id);if(error)throw error;const {error:e}=await alanClient.from("alan_people").delete().eq("id",id).eq("owner_id",alanUser.id);if(e)throw e;}
+  for(const id of goneA){const {error}=await alanClient.from("alan_payments").delete().eq("id",id);if(error)throw error;}
+  for(const id of goneP){const {error}=await alanClient.from("alan_payments").delete().eq("person_id",id);if(error)throw error;const {error:e}=await alanClient.from("alan_people").delete().eq("id",id);if(e)throw e;}
   if(pr.length){const {error}=await alanClient.from("alan_people").upsert(pr,{onConflict:"id"});if(error)throw error;}
   if(ar.length){const {error}=await alanClient.from("alan_payments").upsert(ar,{onConflict:"id"});if(error)throw error;}
   alanKnownPeople=nowP;alanKnownPayments=nowA;
@@ -2110,8 +2114,8 @@ async function alanActivate(session){
   if(alanChannel)await alanClient.removeChannel(alanChannel);
   const uid=alanUser.id;
   alanChannel=alanClient.channel("alan-sync-"+uid)
-   .on("postgres_changes",{event:"*",schema:"public",table:"alan_people",filter:"owner_id=eq."+uid},()=>{if(!alanBusy)alanLoadCloud().catch(console.warn);})
-   .on("postgres_changes",{event:"*",schema:"public",table:"alan_payments",filter:"owner_id=eq."+uid},()=>{if(!alanBusy)alanLoadCloud().catch(console.warn);}).subscribe();
+   .on("postgres_changes",{event:"*",schema:"public",table:"alan_people",...(alanIsSuperadmin()?{}:{filter:"owner_id=eq."+uid})},()=>{if(!alanBusy)alanLoadCloud().catch(console.warn);})
+   .on("postgres_changes",{event:"*",schema:"public",table:"alan_payments",...(alanIsSuperadmin()?{}:{filter:"owner_id=eq."+uid})},()=>{if(!alanBusy)alanLoadCloud().catch(console.warn);}).subscribe();
  }catch(e){console.error(e);alanMsg("No se pudieron cargar tus registros: "+(e.message||"error"),"error");}
 }
 inicializar=async function(){
