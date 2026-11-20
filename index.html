@@ -5,6 +5,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#d71920">
+<meta name="description" content="Sistema ALAN de control de cobros y deudores.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/alan-192.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/alan-192.svg">
 <title>Sistema de Control de Cobros y Deudores</title>
 
 <style>
@@ -511,6 +515,13 @@ footer {
 .auth-message{font-size:13px;line-height:1.5;margin-top:14px;color:#555;overflow-wrap:anywhere}
 .auth-message.error{color:#b00020}.auth-message.success{color:#16743c}
 .btn-signout{background:#333;color:#fff;padding:8px 10px;font-size:11px}
+.pwa-install{display:block;width:100%;min-height:46px;margin:12px 0 4px;background:linear-gradient(110deg,#d71920 0%,#a90e16 55%,#222 100%);color:#fff;border:1px solid #a90e16;box-shadow:0 7px 18px rgba(215,25,32,.18)}
+.auth-link{display:block;width:100%;background:transparent;color:#b10f18;text-decoration:underline;padding:10px 4px;margin-top:6px;font-size:13px}
+.auth-panel{margin-top:14px;padding:16px;border:1px solid #ead1d2;border-radius:13px;background:linear-gradient(145deg,#fff 0%,#fff5f5 58%,#f2f2f2 100%)}
+.auth-panel h3{font-size:17px;color:#b10f18;margin-bottom:8px}
+.auth-panel p{font-size:12px;color:#555;line-height:1.5;margin-bottom:12px}
+.auth-panel button{width:100%;min-height:46px;margin-top:8px}
+.pwa-help{font-size:12px;color:#555;line-height:1.5;text-align:center;margin-top:8px}
 </style>
 </head>
 
@@ -524,7 +535,22 @@ footer {
 <div class="field"><label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Mínimo 8 caracteres"><label class="auth-show-password" style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;cursor:pointer"><input id="authShowPassword" type="checkbox" style="width:16px;height:16px;margin:0"> Mostrar contraseña</label></div>
 <button class="btn-red" id="authLoginBtn" type="submit">INICIAR SESIÓN</button>
 <button class="btn-black" id="authSignupBtn" type="button">CREAR CUENTA NUEVA</button>
-</form><p id="authMessage" class="auth-message" role="status" aria-live="polite">Tus datos estarán protegidos por tu cuenta.</p>
+<button class="auth-link" id="forgotPasswordBtn" type="button">¿Olvidaste tu contraseña?</button>
+</form>
+<div id="forgotPasswordPanel" class="auth-panel hidden">
+<h3>Recuperar contraseña</h3><p>Escribe el correo electrónico de tu cuenta. Te enviaremos un enlace seguro para crear una contraseña nueva.</p>
+<button class="btn-red" id="sendRecoveryBtn" type="button">ENVIAR ENLACE POR CORREO</button>
+<button class="btn-black" id="cancelRecoveryBtn" type="button">VOLVER AL ACCESO</button>
+</div>
+<div id="newPasswordPanel" class="auth-panel hidden">
+<h3>Crear nueva contraseña</h3><p>Escribe tu nueva contraseña y confírmala para recuperar el acceso a ALAN.</p>
+<div class="field"><label for="newPassword">Nueva contraseña</label><input id="newPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div>
+<div class="field"><label for="confirmNewPassword">Confirmar contraseña</label><input id="confirmNewPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Repite la contraseña"></div>
+<button class="btn-red" id="saveNewPasswordBtn" type="button">GUARDAR NUEVA CONTRASEÑA</button>
+</div>
+<button class="pwa-install" id="installAppBtn" type="button">⬇ INSTALAR APLICACIÓN</button>
+<p class="pwa-help" id="installHelp">Instala ALAN en tu dispositivo para abrirla desde tu pantalla de inicio.</p>
+<p id="authMessage" class="auth-message" role="status" aria-live="polite">Tus datos estarán protegidos por tu cuenta.</p>
 </div></section>
 <div class="app hidden">
 
@@ -2031,7 +2057,11 @@ function alanUuid(v){
  const x=[...b].map(n=>n.toString(16).padStart(2,"0")).join("");return x.slice(0,8)+"-"+x.slice(8,12)+"-"+x.slice(12,16)+"-"+x.slice(16,20)+"-"+x.slice(20);
 }
 function alanShowApp(){document.getElementById("authScreen").classList.add("hidden");document.querySelector(".app").classList.remove("hidden");}
+
 function alanShowLogin(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");}
+function alanShowPasswordRecovery(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");document.getElementById("authForm").classList.add("hidden");document.getElementById("forgotPasswordPanel").classList.add("hidden");document.getElementById("newPasswordPanel").classList.remove("hidden");alanMsg("Verifica tu nueva contraseña. Estás usando un enlace seguro de recuperación.");}
+function alanResetAuthPanels(){document.getElementById("authForm").classList.remove("hidden");document.getElementById("forgotPasswordPanel").classList.add("hidden");document.getElementById("newPasswordPanel").classList.add("hidden");}
+
 async function alanLoadCloud(){
  const [p,a]=await Promise.all([alanClient.from("alan_people").select("*").order("created_at",{ascending:false}),alanClient.from("alan_payments").select("*").order("payment_date",{ascending:false})]);
  if(p.error)throw p.error;if(a.error)throw a.error;
@@ -2090,13 +2120,26 @@ inicializar=async function(){
   alanClient=window.supabase.createClient(ALAN_SUPABASE_URL,ALAN_SUPABASE_KEY);
   const {data,error}=await alanClient.auth.getSession();if(error)throw error;
   if(data.session)await alanActivate(data.session);else{alanShowLogin();alanMsg("Inicia sesión o crea una cuenta para consultar tus registros en otros dispositivos.");}
-  alanClient.auth.onAuthStateChange((_event,session)=>setTimeout(()=>{if(session)alanActivate(session);else{alanUser=null;if(alanChannel)alanClient.removeChannel(alanChannel);alanChannel=null;alanShowLogin();}},0));
+  alanClient.auth.onAuthStateChange((event,session)=>setTimeout(()=>{if(event==="PASSWORD_RECOVERY"){alanShowPasswordRecovery();return;}if(session)alanActivate(session);else{alanUser=null;if(alanChannel)alanClient.removeChannel(alanChannel);alanChannel=null;alanResetAuthPanels();alanShowLogin();}},0));
  }catch(e){alanShowLogin();alanMsg(e.message||"No se pudo conectar.","error");}
 };
 guardarDatos=alanSaveCloud;
+document.getElementById("forgotPasswordBtn").addEventListener("click",()=>{document.getElementById("authForm").classList.remove("hidden");document.getElementById("forgotPasswordPanel").classList.remove("hidden");document.getElementById("newPasswordPanel").classList.add("hidden");alanMsg("Introduce tu correo de acceso y solicita el enlace de recuperación.");});
+document.getElementById("cancelRecoveryBtn").addEventListener("click",()=>{alanResetAuthPanels();alanMsg("Puedes iniciar sesión o crear una cuenta.");});
+document.getElementById("sendRecoveryBtn").addEventListener("click",async()=>{const email=document.getElementById("authEmail").value.trim().toLowerCase();if(!email||!email.includes("@")){alanMsg("Escribe primero un correo electrónico válido en el campo de correo.","error");return;}const b=document.getElementById("sendRecoveryBtn");b.disabled=true;alanMsg("Enviando el enlace de recuperación...");try{const {error}=await alanClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});if(error)throw error;alanMsg("Si existe una cuenta con ese correo, recibirás un mensaje para recuperar tu contraseña. Revisa también spam y correo no deseado.","success");}catch(e){alanMsg(e.message||"No se pudo enviar el correo de recuperación.","error");}finally{b.disabled=false;}});
+document.getElementById("saveNewPasswordBtn").addEventListener("click",async()=>{const p=document.getElementById("newPassword").value,confirm=document.getElementById("confirmNewPassword").value;if(p.length<8){alanMsg("La nueva contraseña debe tener al menos 8 caracteres.","error");return;}if(p!==confirm){alanMsg("Las contraseñas no coinciden.","error");return;}const b=document.getElementById("saveNewPasswordBtn");b.disabled=true;try{const {error}=await alanClient.auth.updateUser({password:p});if(error)throw error;alanMsg("Tu contraseña se actualizó correctamente. Ya puedes continuar.","success");document.getElementById("newPasswordPanel").classList.add("hidden");const {data}=await alanClient.auth.getSession();if(data.session)await alanActivate(data.session);else{alanResetAuthPanels();alanShowLogin();}}catch(e){alanMsg(e.message||"No se pudo actualizar la contraseña.","error");}finally{b.disabled=false;}});
 document.getElementById("authShowPassword").addEventListener("change",e=>{document.getElementById("authPassword").type=e.target.checked?"text":"password";});
 document.getElementById("authForm").addEventListener("submit",async e=>{e.preventDefault();const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;document.getElementById("authLoginBtn").disabled=true;document.getElementById("authSignupBtn").disabled=true;alanMsg("Iniciando sesión...");try{const {data,error}=await alanClient.auth.signInWithPassword({email,password});if(error)throw error;await alanActivate(data.session);}catch(x){alanMsg(x.message||"No se pudo iniciar sesión.","error");}finally{document.getElementById("authLoginBtn").disabled=false;document.getElementById("authSignupBtn").disabled=false;}});
 document.getElementById("authSignupBtn").addEventListener("click",async()=>{const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;if(!email||!email.includes("@")){alanMsg("Escribe un correo electrónico válido.","error");return;}if(password.length<8){alanMsg("La contraseña debe tener al menos 8 caracteres.","error");return;}alanMsg("Creando cuenta...");try{const {data,error}=await alanClient.auth.signUp({email,password});if(error)throw error;if(data.session)await alanActivate(data.session);else alanMsg("Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.","success");}catch(x){alanMsg(x.message||"No se pudo crear la cuenta.","error");}});
+
+/* Instalación PWA: compatible con Chrome/Android y guía manual para iPhone. */
+let alanInstallPrompt=null;
+const alanInstallButton=document.getElementById("installAppBtn");
+const alanInstallHelp=document.getElementById("installHelp");
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();alanInstallPrompt=event;alanInstallButton.classList.remove("hidden");alanInstallHelp.textContent="Pulsa el botón para instalar ALAN en tu dispositivo.";});
+window.addEventListener("appinstalled",()=>{alanInstallPrompt=null;alanInstallButton.classList.add("hidden");alanInstallHelp.textContent="ALAN ya está instalada en tu dispositivo.";});
+alanInstallButton.addEventListener("click",async()=>{if(alanInstallPrompt){alanInstallPrompt.prompt();const choice=await alanInstallPrompt.userChoice;if(choice&&choice.outcome==="accepted"){alanInstallHelp.textContent="Instalación aceptada. ALAN aparecerá en tu pantalla de inicio.";}alanInstallPrompt=null;return;}const ua=navigator.userAgent||"";if(/iphone|ipad|ipod/i.test(ua)){alanInstallHelp.textContent="En Safari: pulsa Compartir y después 'Añadir a pantalla de inicio'.";return;}if(window.matchMedia("(display-mode: standalone)").matches){alanInstallHelp.textContent="ALAN ya está instalada.";return;}alanInstallHelp.textContent="Si tu navegador ofrece 'Instalar aplicación' o 'Añadir a pantalla de inicio', selecciónalo desde el menú ⋮ del navegador.";});
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(error=>console.warn("No se pudo activar el modo PWA:",error)));}
 document.getElementById("signOutBtn").addEventListener("click",async()=>{const {error}=await alanClient.auth.signOut();if(error)mostrarToast(error.message);});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&alanUser)alanLoadCloud().catch(console.warn);});
 inicializar();
