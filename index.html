@@ -757,6 +757,7 @@ footer {
 </section>
 
 <footer>
+  <button class="pwa-install" id="installAppBtnApp" type="button">⬇ INSTALAR APLICACIÓN</button>
   SISTEMA NACIONAL DE CONTROL DE COBROS Y DEUDORES
   <br>
   ALAN 🇲🇽
@@ -2136,9 +2137,11 @@ document.getElementById("authSignupBtn").addEventListener("click",async()=>{cons
 let alanInstallPrompt=null;
 const alanInstallButton=document.getElementById("installAppBtn");
 const alanInstallHelp=document.getElementById("installHelp");
-window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();alanInstallPrompt=event;alanInstallButton.classList.remove("hidden");alanInstallHelp.textContent="Pulsa el botón para instalar ALAN en tu dispositivo.";});
-window.addEventListener("appinstalled",()=>{alanInstallPrompt=null;alanInstallButton.classList.add("hidden");alanInstallHelp.textContent="ALAN ya está instalada en tu dispositivo.";});
+const alanInstallButtonApp=document.getElementById("installAppBtnApp");
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();alanInstallPrompt=event;alanInstallButton.classList.remove("hidden");if(alanInstallButtonApp)alanInstallButtonApp.classList.remove("hidden");alanInstallHelp.textContent="Pulsa el botón para instalar ALAN en tu dispositivo.";});
+window.addEventListener("appinstalled",()=>{alanInstallPrompt=null;alanInstallButton.classList.add("hidden");if(alanInstallButtonApp)alanInstallButtonApp.classList.add("hidden");alanInstallHelp.textContent="ALAN ya está instalada en tu dispositivo.";});
 alanInstallButton.addEventListener("click",async()=>{if(alanInstallPrompt){alanInstallPrompt.prompt();const choice=await alanInstallPrompt.userChoice;if(choice&&choice.outcome==="accepted"){alanInstallHelp.textContent="Instalación aceptada. ALAN aparecerá en tu pantalla de inicio.";}alanInstallPrompt=null;return;}const ua=navigator.userAgent||"";if(/iphone|ipad|ipod/i.test(ua)){alanInstallHelp.textContent="En Safari: pulsa Compartir y después 'Añadir a pantalla de inicio'.";return;}if(window.matchMedia("(display-mode: standalone)").matches){alanInstallHelp.textContent="ALAN ya está instalada.";return;}alanInstallHelp.textContent="Si tu navegador ofrece 'Instalar aplicación' o 'Añadir a pantalla de inicio', selecciónalo desde el menú ⋮ del navegador.";});
+if(alanInstallButtonApp)alanInstallButtonApp.addEventListener("click",()=>alanInstallButton.click());
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(error=>console.warn("No se pudo activar el modo PWA:",error)));}
 document.getElementById("signOutBtn").addEventListener("click",async()=>{const {error}=await alanClient.auth.signOut();if(error)mostrarToast(error.message);});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&alanUser)alanLoadCloud().catch(console.warn);});
