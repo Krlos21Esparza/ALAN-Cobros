@@ -694,6 +694,7 @@ html[data-theme="light"] .debtor-notes{color:#465365}
 </div></div>
 <p class="auth-subtitle">Inicia sesión para consultar tus registros desde cualquiera de tus dispositivos.</p>
 <form id="authForm">
+<div class="field hidden" id="signupNameField"><label for="authDisplayName">Nombre para tu cuenta</label><input id="authDisplayName" type="text" autocomplete="name" maxlength="80" placeholder="Escribe tu nombre"></div>
 <div class="field"><label for="authEmail">Correo electrónico</label><input id="authEmail" type="email" autocomplete="email" required></div>
 <div class="field"><label for="authPassword">Contraseña</label><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Mínimo 8 caracteres"><label class="auth-show-password" style="display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;cursor:pointer"><input id="authShowPassword" type="checkbox" style="width:16px;height:16px;margin:0"> Mostrar contraseña</label></div>
 <button class="btn-red" id="authLoginBtn" type="submit">INICIAR SESIÓN</button>
@@ -2277,10 +2278,23 @@ async function alanSaveCloud(){
   document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";return true;
  }catch(e){console.error(e);mostrarToast("No se pudo sincronizar: "+(e.message||"error de conexión"));return false;}finally{alanBusy=false;}
 }
+async function alanSendWelcomeEmail(){
+ if(!alanClient||!alanUser)return;
+ const metadata=alanUser.user_metadata||{};
+ if(metadata.alan_welcome_email_sent_at)return;
+ try{
+  const {data,error}=await alanClient.functions.invoke("alan-welcome-email",{body:{}});
+  if(error)throw error;
+  if(data&&data.ok&&data.sent){
+   alanUser={...alanUser,user_metadata:{...metadata,alan_welcome_email_sent_at:data.sentAt||new Date().toISOString()}};
+  }
+ }catch(error){console.warn("No se pudo enviar el correo de bienvenida:",error);}
+}
 async function alanActivate(session){
  if(!session||!session.user)return;alanUser=session.user;alanShowApp();
  try{
   await alanLoadCloud();
+  await alanSendWelcomeEmail();
   const cloudCount=alanKnownPeople.size,localOwner=localStorage.getItem(ALAN_LOCAL_OWNER);let local=[];
   try{if(database)local=(await leerIndexedDB()).map(normalizarPersona);if(!local.length)local=leerLocalStorage().map(normalizarPersona);}catch(e){console.warn(e);}
   if(cloudCount===0&&local.length&&(!localOwner||localOwner===alanUser.id)){
@@ -2324,6 +2338,10 @@ document.getElementById("authSignupBtn").addEventListener("click",async()=>{
  const email=document.getElementById("authEmail").value.trim().toLowerCase();
  const password=document.getElementById("authPassword").value;
  const btn=document.getElementById("authSignupBtn");
+ const nameField=document.getElementById("signupNameField");
+ const displayName=document.getElementById("authDisplayName").value.trim();
+ if(nameField.classList.contains("hidden")){nameField.classList.remove("hidden");document.getElementById("authDisplayName").required=true;document.getElementById("authDisplayName").focus();btn.textContent="CONTINUAR CON EL REGISTRO";alanMsg("Escribe tu nombre para personalizar tu cuenta y el correo de bienvenida.");return;}
+ if(!displayName){alanMsg("Escribe el nombre que aparecerá en tu cuenta.","error");document.getElementById("authDisplayName").focus();return;}
  if(!email||!email.includes("@")){alanMsg("Escribe un correo electrónico válido.","error");return;}
  if(password.length<8){alanMsg("La contraseña debe tener al menos 8 caracteres.","error");return;}
  if(!alanClient){alanMsg("El servicio de acceso no está disponible. Comprueba tu conexión e inténtalo de nuevo.","error");return;}
@@ -2331,7 +2349,7 @@ document.getElementById("authSignupBtn").addEventListener("click",async()=>{
  document.getElementById("authLoginBtn").disabled=true;
  alanMsg("Creando tu cuenta...");
  try{
-  const {data,error}=await alanClient.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
+  const {data,error}=await alanClient.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname,data:{full_name:displayName,name:displayName}}});
   if(error)throw error;
   if(data.session){
    await alanActivate(data.session);
@@ -2353,6 +2371,7 @@ document.getElementById("authSignupBtn").addEventListener("click",async()=>{
  }finally{
   btn.disabled=false;
   document.getElementById("authLoginBtn").disabled=false;
+  btn.textContent="CREAR CUENTA NUEVA";
  }
 });
 
