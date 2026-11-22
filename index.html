@@ -2315,9 +2315,18 @@ inicializar=async function(){
  try{
   if(!window.supabase||!window.supabase.createClient)throw new Error("No se pudo cargar el servicio de acceso. Comprueba internet.");
   alanClient=window.supabase.createClient(ALAN_SUPABASE_URL,ALAN_SUPABASE_KEY);
+  // Suscribe primero para no perder PASSWORD_RECOVERY al volver desde el correo.
+  alanClient.auth.onAuthStateChange((event,session)=>setTimeout(()=>{
+   if(event==="PASSWORD_RECOVERY"){alanShowPasswordRecovery();return;}
+   if(event==="INITIAL_SESSION")return;
+   if(session){alanActivate(session);return;}
+   if(event==="SIGNED_OUT"){alanUser=null;if(alanChannel)alanClient.removeChannel(alanChannel);alanChannel=null;alanResetAuthPanels();alanShowLogin();}
+  },0));
   const {data,error}=await alanClient.auth.getSession();if(error)throw error;
-  if(data.session)await alanActivate(data.session);else{alanShowLogin();alanMsg("Inicia sesión o crea una cuenta para consultar tus registros en otros dispositivos.");}
-  alanClient.auth.onAuthStateChange((event,session)=>setTimeout(()=>{if(event==="PASSWORD_RECOVERY"){alanShowPasswordRecovery();return;}if(session)alanActivate(session);else{alanUser=null;if(alanChannel)alanClient.removeChannel(alanChannel);alanChannel=null;alanResetAuthPanels();alanShowLogin();}},0));
+  const recoveryHash=new URLSearchParams(window.location.hash.replace(/^#/,"")).get("type")==="recovery";
+  if(data.session&&recoveryHash)alanShowPasswordRecovery();
+  else if(data.session)await alanActivate(data.session);
+  else{alanShowLogin();alanMsg("Inicia sesión o crea una cuenta para consultar tus registros en otros dispositivos.");}
  }catch(e){alanShowLogin();alanMsg(e.message||"No se pudo conectar.","error");}
 };
 guardarDatos=alanSaveCloud;
