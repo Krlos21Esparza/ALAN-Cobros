@@ -978,32 +978,16 @@ function normalizarPersona(person) {
   return {
     id:String(person.id || generarId()),
     ownerId:person.ownerId || person.owner_id || null,
-
     name:String(person.name || person.nombre || "Sin nombre"),
-
-    initialDebt:Math.max(0,Number(
-      person.initialDebt ??
-      person.deuda ??
-      person.deudaInicial ??
-      0
-    ) || 0),
-
-    dailyFine:Math.max(0,Number(
-      person.dailyFine ??
-      person.multaDiaria ??
-      0
-    ) || 0),
-
-    dueDate:person.dueDate ||
-      person.fechaVencimiento ||
-      today(),
-
+    initialDebt:Math.max(0,Number(person.initialDebt ?? person.deuda ?? person.deudaInicial ?? 0) || 0),
+    dailyFine:Math.max(0,Number(person.dailyFine ?? person.multaDiaria ?? 0) || 0),
+    initialLateDays:Math.max(0,Number(person.initialLateDays ?? person.initial_late_days ?? 0) || 0),
+    initialFine:Math.max(0,Number(person.initialFine ?? person.initial_fine ?? 0) || 0),
+    fineBaseDate:person.fineBaseDate || person.fine_base_date || today(),
+    dueDate:person.dueDate || person.due_date || person.fechaVencimiento || today(),
     phone:String(person.phone || person.telefono || ""),
-
     notes:String(person.notes || person.observaciones || ""),
-
-    createdAt:person.createdAt || new Date().toISOString(),
-
+    createdAt:person.createdAt || person.created_at || new Date().toISOString(),
     payments
   };
 }
@@ -2073,7 +2057,7 @@ async function alanLoadCloud(){
  if(p.error)throw p.error;if(a.error)throw a.error;
  alanKnownPeople=new Set((p.data||[]).map(x=>x.id));alanKnownPayments=new Set((a.data||[]).map(x=>x.id));
  const map=new Map();(a.data||[]).forEach(x=>{if(!map.has(x.person_id))map.set(x.person_id,[]);map.get(x.person_id).push({id:x.id,ownerId:x.owner_id,amount:Number(x.amount),date:x.payment_date,note:x.note||""});});
- people=(p.data||[]).map(x=>normalizarPersona({id:x.id,ownerId:x.owner_id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
+ people=(p.data||[]).map(x=>normalizarPersona({id:x.id,ownerId:x.owner_id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),initialLateDays:Number(x.initial_late_days||0),initialFine:Number(x.initial_fine||0),fineBaseDate:x.fine_base_date||today(),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
  storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();
  const cloudWasInitialized=localStorage.getItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id)==="1";
  if((p.data||[]).length>0||cloudWasInitialized){
@@ -2086,7 +2070,7 @@ async function alanSaveCloud(){
   alanBusy=true;
   const normalized=people.map(p=>({...p,id:alanUuid(p.id),payments:(p.payments||[]).map(a=>({...a,id:alanUuid(a.id)}))}));
   people=normalized;
-  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
+  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:Number(p.initialLateDays||0),initial_fine:Number(p.initialFine||0),fine_base_date:p.fineBaseDate||today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
   const ar=people.flatMap(p=>(p.payments||[]).map(a=>({id:a.id,owner_id:a.ownerId||p.ownerId||alanUser.id,person_id:p.id,amount:Number(a.amount||0),payment_date:a.date||today(),note:a.note||""})));
   const nowP=new Set(pr.map(x=>x.id)),nowA=new Set(ar.map(x=>x.id));
   const goneA=[...alanKnownPayments].filter(x=>!nowA.has(x));
