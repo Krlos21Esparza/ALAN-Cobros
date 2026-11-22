@@ -601,6 +601,84 @@ html[data-theme="dark"] .tag.paid{background:#1d3451;color:#a9ceff}
 @keyframes alanFlip{0%{transform:perspective(180px) rotateX(0);filter:brightness(1)}45%{transform:perspective(180px) rotateX(-82deg);filter:brightness(.55)}100%{transform:perspective(180px) rotateX(0);filter:brightness(1)}}
 @media(max-width:390px){.flip-countdown{padding:13px 8px!important}.flip-clock{gap:5px}.flip-card{min-height:63px;border-radius:8px}.flip-value{font-size:clamp(22px,6.2vw,31px);letter-spacing:-1px}.flip-unit[data-unit="days"] .flip-value{font-size:clamp(21px,5.8vw,29px)}.flip-caption{font-size:8px;letter-spacing:.3px}}
 @media(prefers-reduced-motion:reduce){.flip-card.is-flipping .flip-value{animation:none!important}}
+
+/* Espacio de expediente individual: diseño premium inspirado en la referencia */
+.debtor-workspace{display:grid;grid-template-columns:205px minmax(0,1fr);gap:18px;padding:17px;border:1px solid #30343b!important;border-radius:24px!important;background:linear-gradient(145deg,#17191e,#0e1014)!important;color:#f4f5f7!important;box-shadow:0 18px 44px rgba(0,0,0,.16);overflow:hidden;scroll-margin-top:18px}
+.debtor-sidebar{min-width:0;padding:12px 10px;border-right:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;align-items:stretch}
+.debtor-avatar{width:62px;height:62px;border-radius:19px;display:grid;place-items:center;margin:0 auto 12px;background:linear-gradient(145deg,#ff784e,#a90e38 65%,#50152e);color:white;font-size:27px;font-weight:900;box-shadow:0 8px 22px rgba(215,25,32,.22)}
+.debtor-sidebar-name{text-align:center;font-size:15px;font-weight:800;overflow-wrap:anywhere}
+.debtor-sidebar-caption{text-align:center;color:#9298a3;font-size:9px;letter-spacing:1.1px;margin:5px 0 20px}
+.debtor-nav{display:grid;gap:6px}
+.debtor-nav a{display:flex;align-items:center;gap:10px;padding:11px 10px;border:1px solid transparent;border-radius:11px;color:#aeb4bf;text-decoration:none;font-size:11px;font-weight:700;transition:background .2s,border-color .2s,color .2s,transform .2s}
+.debtor-nav a span{width:19px;text-align:center;font-size:17px;color:#8e98a8}
+.debtor-nav a:hover,.debtor-nav a:focus,.debtor-nav a.active{background:#202b39;border-color:#2687df;color:#fff;outline:none}
+.debtor-nav a:active{transform:scale(.98)}
+.debtor-sidebar-status{display:flex;align-items:center;gap:7px;margin-top:auto;padding:18px 4px 2px;border-top:1px solid rgba(255,255,255,.09)}
+.debtor-status-dot{width:8px;height:8px;border-radius:50%;background:#32b879;flex:0 0 auto}
+.debtor-status-dot.late{background:#ff5964}.debtor-status-dot.today{background:#f2a93b}.debtor-status-dot.paid{background:#4d9fff}
+.debtor-sidebar-status .tag{font-size:9px}
+.debtor-main{min-width:0}
+.debtor-cover{position:relative;isolation:isolate;min-height:170px;padding:22px;border-radius:18px;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;background:radial-gradient(ellipse at 72% 15%,rgba(255,126,42,.95),transparent 40%),radial-gradient(ellipse at 55% 75%,rgba(177,0,60,.96),transparent 56%),linear-gradient(120deg,#5b1832,#d52a32 52%,#f28a46);scroll-margin-top:14px}
+.debtor-cover:before{content:"";position:absolute;z-index:-1;width:250px;height:250px;right:10%;top:-175px;border-radius:50%;background:rgba(255,255,255,.18);filter:blur(2px)}
+.debtor-cover-orb{position:absolute;z-index:-1;width:180px;height:180px;right:20%;bottom:-130px;border-radius:50%;background:rgba(255,255,255,.15);filter:blur(1px)}
+.debtor-cover-copy{min-width:0}
+.debtor-cover-copy>span,.debtor-cover-balance span{font-size:9px;font-weight:800;letter-spacing:1.3px;color:rgba(255,255,255,.8)}
+.debtor-cover-copy h3{font-size:clamp(20px,3vw,30px);line-height:1.12;margin:8px 0;color:#fff;overflow-wrap:anywhere}
+.debtor-cover-copy small{font-size:11px;color:rgba(255,255,255,.82)}
+.debtor-cover-balance{text-align:right;min-width:0}
+.debtor-cover-balance strong{display:block;color:#fff;font-size:clamp(20px,3.5vw,32px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin-top:7px}
+.debtor-section{padding:20px 2px 16px;border-bottom:1px solid rgba(255,255,255,.09);scroll-margin-top:14px}
+.debtor-section-heading{margin-bottom:13px}
+.debtor-section-heading>span{display:block;color:#7f91a8;font-size:9px;font-weight:800;letter-spacing:1.5px;margin-bottom:5px}
+.debtor-section-heading h4{font-size:16px;color:#f3f5f8}
+.debtor-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.debtor-info{padding:12px;border-radius:12px;background:linear-gradient(145deg,#252a33,#1b1f26);border:1px solid rgba(255,255,255,.055);min-width:0}
+.debtor-info span,.debtor-finance-card span{display:block;color:#9ca5b2;font-size:10px;margin-bottom:7px}
+.debtor-info strong{display:block;color:#f2f4f7;font-size:12px;overflow-wrap:anywhere;line-height:1.4}
+.debtor-finance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.debtor-finance-card{padding:13px;border-radius:12px;background:linear-gradient(145deg,#252a33,#1b1f26);border:1px solid rgba(255,255,255,.055);min-width:0}
+.debtor-finance-card strong{display:block;color:#f4f5f7;font-size:16px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.debtor-finance-card.debt{grid-column:1/-1;background:linear-gradient(110deg,#172b40,#123f65);border-color:#236ba5}
+.debtor-finance-card.debt strong{font-size:clamp(23px,4vw,32px);color:#69baff}
+.debtor-workspace .flip-countdown{margin:0;background:#101114!important;border-color:#343a44!important}
+.debtor-workspace .countdown:not(.flip-countdown){background:#20262e!important;border-color:#3a4654!important;color:#fff}
+.debtor-workspace .countdown-label,.debtor-workspace .countdown small{color:#b7c0cc!important}
+.debtor-payment-list{padding:4px 13px;border-radius:12px;background:#1c2129;border:1px solid rgba(255,255,255,.06)}
+.debtor-payment-list .payment-row{border-color:rgba(255,255,255,.08);color:#cbd1da}
+.debtor-payment-list .payment-row strong{color:#54d49a}
+.debtor-payment-list p{color:#aab2bd!important;padding:12px 0}
+.debtor-notes{padding:13px;border-radius:12px;background:#1d222a;border:1px solid rgba(255,255,255,.06);color:#c4cbd5;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.debtor-actions{display:flex;flex-wrap:wrap;gap:9px;padding-top:17px}
+.debtor-actions button{flex:1;min-width:130px;min-height:42px}
+@media(max-width:650px){
+ .debtor-workspace{grid-template-columns:1fr;gap:13px;padding:11px;border-radius:19px!important}
+ .debtor-sidebar{border-right:0;border-bottom:1px solid rgba(255,255,255,.1);padding:7px 2px 12px}
+ .debtor-avatar{width:48px;height:48px;border-radius:15px;font-size:22px;margin-bottom:8px}
+ .debtor-sidebar-caption{margin-bottom:12px}
+ .debtor-nav{display:flex;overflow-x:auto;padding:2px 1px 7px;scrollbar-width:thin}
+ .debtor-nav a{flex:0 0 auto;padding:9px 10px;white-space:nowrap}
+ .debtor-sidebar-status{margin-top:9px;padding-top:10px;border-top:0}
+ .debtor-cover{min-height:145px;padding:16px;gap:8px}
+ .debtor-info-grid,.debtor-finance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .debtor-section{padding:16px 1px 13px}
+}
+@media(max-width:360px){.debtor-cover{display:block}.debtor-cover-balance{text-align:left;margin-top:13px}.debtor-finance-card{padding:10px}.debtor-finance-card strong{font-size:14px}}
+html[data-theme="light"] .debtor-workspace{background:linear-gradient(145deg,#fff,#f2f5f9)!important;border-color:#dce2eb!important;color:#202631!important;box-shadow:0 14px 35px rgba(22,38,60,.08)}
+html[data-theme="light"] .debtor-sidebar{border-color:#e3e8ef}
+html[data-theme="light"] .debtor-sidebar-name,html[data-theme="light"] .debtor-section-heading h4{color:#202631}
+html[data-theme="light"] .debtor-nav a{color:#536071}
+html[data-theme="light"] .debtor-nav a:hover,html[data-theme="light"] .debtor-nav a:focus,html[data-theme="light"] .debtor-nav a.active{background:#eaf3ff;color:#145da5;border-color:#5ca7f4}
+html[data-theme="light"] .debtor-info,html[data-theme="light"] .debtor-finance-card{background:linear-gradient(145deg,#fff,#f2f5f9);border-color:#e0e6ee}
+html[data-theme="light"] .debtor-info strong,html[data-theme="light"] .debtor-finance-card strong{color:#202631}
+html[data-theme="light"] .debtor-info span,html[data-theme="light"] .debtor-finance-card span{color:#687587}
+html[data-theme="light"] .debtor-finance-card.debt{background:linear-gradient(110deg,#eaf4ff,#d9ecff);border-color:#a7d1fa}
+html[data-theme="light"] .debtor-finance-card.debt strong{color:#1269b2}
+html[data-theme="light"] .debtor-payment-list,html[data-theme="light"] .debtor-notes{background:#f5f7fa;border-color:#e1e6ee;color:#364152}
+html[data-theme="light"] .debtor-payment-list .payment-row{color:#465365;border-color:#e1e6ee}
+html[data-theme="light"] .debtor-payment-list p{color:#687587!important}
+html[data-theme="light"] .debtor-notes{color:#465365}
+@media(prefers-reduced-motion:reduce){.debtor-nav a{transition:none!important}}
+
 </style>
 </head>
 
@@ -1547,127 +1625,87 @@ function render() {
         </p>
       `;
 
+    const debtorId = escapeHTML(person.id);
+    const debtorInitial = escapeHTML((person.name || "?").trim().charAt(0).toUpperCase());
     return `
+      <article class="person debtor-workspace" data-person-id="${debtorId}" id="alan-debtor-${debtorId}">
+        <aside class="debtor-sidebar">
+          <div class="debtor-avatar">${debtorInitial}</div>
+          <div class="debtor-sidebar-name">${escapeHTML(person.name)}</div>
+          <div class="debtor-sidebar-caption">EXPEDIENTE DE DEUDOR</div>
+          <nav class="debtor-nav" aria-label="Secciones de ${escapeHTML(person.name)}">
+            <a href="#alan-summary-${debtorId}" class="active"><span>◈</span> Resumen</a>
+            <a href="#alan-data-${debtorId}"><span>♙</span> Datos personales</a>
+            <a href="#alan-account-${debtorId}"><span>▣</span> Estado de cuenta</a>
+            <a href="#alan-payments-${debtorId}"><span>↗</span> Historial de abonos</a>
+            <a href="#alan-due-${debtorId}"><span>◷</span> Vencimiento</a>
+            <a href="#alan-notes-${debtorId}"><span>▤</span> Observaciones</a>
+          </nav>
+          <div class="debtor-sidebar-status"><span class="debtor-status-dot ${tagClass}"></span><span class="tag ${tagClass}">${tagText}</span></div>
+        </aside>
 
-      <article class="person" data-person-id="${escapeHTML(person.id)}">
-
-        <div class="person-top">
-
-          <div>
-
-            <div class="person-name">
-              ${escapeHTML(person.name)}
+        <div class="debtor-main">
+          <section class="debtor-cover" id="alan-summary-${debtorId}">
+            <div class="debtor-cover-orb"></div>
+            <div class="debtor-cover-copy">
+              <span>CUENTA PERSONAL</span>
+              <h3>${escapeHTML(person.name)}</h3>
+              <small>Resumen de deuda y pagos registrados</small>
             </div>
-
-            <div class="person-date">
-
-              ${person.phone
-                ? "☎ " + escapeHTML(person.phone) + "<br>"
-                : ""}
-
-              Registro: ${escapeHTML(fechaHoraRegistro(person.createdAt))}
-              <br>
-
-              Vencimiento: ${escapeHTML(person.dueDate)}
-
+            <div class="debtor-cover-balance">
+              <span>SALDO PENDIENTE</span>
+              <strong>${money(calc.saldo)}</strong>
             </div>
+          </section>
 
+          <section class="debtor-section" id="alan-data-${debtorId}">
+            <div class="debtor-section-heading"><span>01 / PERFIL</span><h4>Datos personales</h4></div>
+            <div class="debtor-info-grid">
+              <div class="debtor-info"><span>Nombre</span><strong>${escapeHTML(person.name)}</strong></div>
+              <div class="debtor-info"><span>Teléfono</span><strong>${person.phone ? escapeHTML(person.phone) : "No registrado"}</strong></div>
+              <div class="debtor-info"><span>Fecha de registro</span><strong>${escapeHTML(fechaHoraRegistro(person.createdAt))}</strong></div>
+              <div class="debtor-info"><span>Fecha de vencimiento</span><strong>${escapeHTML(person.dueDate)}</strong></div>
+            </div>
+          </section>
+
+          <section class="debtor-section" id="alan-account-${debtorId}">
+            <div class="debtor-section-heading"><span>02 / FINANZAS</span><h4>Estado de cuenta</h4></div>
+            <div class="debtor-finance-grid">
+              <div class="debtor-finance-card debt"><span>Saldo pendiente</span><strong>${money(calc.saldo)}</strong></div>
+              <div class="debtor-finance-card"><span>Deuda inicial</span><strong>${money(person.initialDebt)}</strong></div>
+              <div class="debtor-finance-card"><span>Multa acumulada</span><strong>${money(calc.multa)}</strong></div>
+              <div class="debtor-finance-card"><span>Total pagado</span><strong>${money(calc.totalPagado)}</strong></div>
+              <div class="debtor-finance-card"><span>Multa por día</span><strong>${money(person.dailyFine)}</strong></div>
+              <div class="debtor-finance-card"><span>Deuda + multa</span><strong>${money(calc.total)}</strong></div>
+              <div class="debtor-finance-card"><span>Días de atraso</span><strong>${calc.diasAtraso}</strong></div>
+            </div>
+          </section>
+
+          <section class="debtor-section debtor-due-section" id="alan-due-${debtorId}">
+            <div class="debtor-section-heading"><span>03 / CALENDARIO</span><h4>Vencimiento y cuenta regresiva</h4></div>
+            ${countdownHTML}
+          </section>
+
+          <section class="debtor-section" id="alan-payments-${debtorId}">
+            <div class="debtor-section-heading"><span>04 / MOVIMIENTOS</span><h4>Historial de abonos</h4></div>
+            <div class="debtor-payment-list">${payments}</div>
+          </section>
+
+          <section class="debtor-section" id="alan-notes-${debtorId}">
+            <div class="debtor-section-heading"><span>05 / INFORMACIÓN</span><h4>Observaciones</h4></div>
+            <p class="debtor-notes">${person.notes ? escapeHTML(person.notes) : "No hay observaciones registradas."}</p>
+          </section>
+
+          <div class="debtor-actions">
+            ${calc.saldo > 0 ? `
+              <button class="btn-green btn-small" type="button" data-action="pay" data-id="${debtorId}">＋ ABONAR</button>
+            ` : ""}
+            <button class="btn-gray btn-small" type="button" data-action="edit" data-id="${debtorId}">EDITAR DATOS</button>
+            <button class="btn-danger btn-small" type="button" data-action="delete" data-id="${debtorId}">ELIMINAR REGISTRO</button>
           </div>
-
-          <span class="tag ${tagClass}">
-            ${tagText}
-          </span>
-
         </div>
-
-        ${countdownHTML}
-
-        <div class="balance">
-          ${money(calc.saldo)}
-        </div>
-
-        <div class="details">
-
-          <div class="detail">
-            <span>Deuda inicial</span>
-            <strong>${money(person.initialDebt)}</strong>
-          </div>
-
-          <div class="detail">
-            <span>Multa acumulada</span>
-            <strong>${money(calc.multa)}</strong>
-          </div>
-
-          <div class="detail">
-            <span>Total pagado</span>
-            <strong>${money(calc.totalPagado)}</strong>
-          </div>
-
-          <div class="detail">
-            <span>Multa por día</span>
-            <strong>${money(person.dailyFine)}</strong>
-          </div>
-
-          <div class="detail">
-            <span>Días de atraso</span>
-            <strong>${calc.diasAtraso}</strong>
-          </div>
-
-          <div class="detail">
-            <span>Deuda + multa</span>
-            <strong>${money(calc.total)}</strong>
-          </div>
-
-        </div>
-
-        ${person.notes ? `
-          <p style="font-size:12px;color:#666;margin-top:10px;line-height:1.5">
-            ${escapeHTML(person.notes)}
-          </p>
-        ` : ""}
-
-        <div class="payments">
-
-          <strong style="font-size:13px">
-            Historial de abonos
-          </strong>
-
-          <div style="margin-top:7px">
-            ${payments}
-          </div>
-
-        </div>
-
-        <div class="actions">
-
-          ${calc.saldo > 0 ? `
-            <button class="btn-green btn-small"
-              type="button"
-              data-action="pay"
-              data-id="${escapeHTML(person.id)}">
-              + ABONAR
-            </button>
-          ` : ""}
-
-          <button class="btn-gray btn-small"
-            type="button"
-            data-action="edit"
-            data-id="${escapeHTML(person.id)}">
-            EDITAR
-          </button>
-
-          <button class="btn-danger btn-small"
-            type="button"
-            data-action="delete"
-            data-id="${escapeHTML(person.id)}">
-            ELIMINAR
-          </button>
-
-        </div>
-
       </article>
-
-    `;
+    `;;
 
   }).join("");\n  actualizarCuentaRegresiva();
 
