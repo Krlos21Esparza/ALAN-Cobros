@@ -1100,7 +1100,7 @@ function actualizarCuentaRegresiva(){
   const now=Date.now();
   document.querySelectorAll("[data-countdown-clock]").forEach(clock=>{
     const raw=clock.dataset.dueDate||"";
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(raw))return;
     const [year,month,day]=raw.split("-").map(Number);
     const deadline=new Date(year,month-1,day+1,0,0,0,0).getTime();
     let days=0,hours=0,minutes=0,seconds=0;
