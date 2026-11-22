@@ -2340,7 +2340,7 @@ document.getElementById("authSignupBtn").addEventListener("click",async()=>{
   }
   // Supabase can return an empty identities array for an email that already exists.
   // Do not treat this as a successful new signup or expose account enumeration.
-  alanMsg("La solicitud fue recibida, pero todavía no hay una sesión activa. Revisa tu correo para confirmar la cuenta. Si ya tenías una cuenta, vuelve al acceso e inicia sesión con tu contraseña. Si no recuerdas la contraseña, usa «¿Olvidaste tu contraseña?» y no vuelvas a crear la cuenta.", "success");
+  alanMsg("Cuenta creada. Revisa tu correo y confirma el registro; al pulsar el enlace volverás a ALAN para iniciar sesión. Si no recibes el mensaje, revisa spam. Si ya tenías una cuenta, inicia sesión o recupera tu contraseña.", "success");
  }catch(err){
   const message=String(err&&err.message||"");
   if(/already registered|already been registered|user already exists|email address.*exists/i.test(message)){
