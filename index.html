@@ -769,7 +769,6 @@ footer {
 
 <div class="toast" id="toast"></div>
 
-<script src="./offline-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
@@ -2144,6 +2143,7 @@ document.getElementById("signOutBtn").addEventListener("click",async()=>{const {
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&alanUser)alanLoadCloud().catch(console.warn);});
 inicializar();
 </script>
+<script src="./offline-sync.js"></script>
 
 </body>
 </html>
