@@ -613,6 +613,8 @@ html[data-theme="dark"] .tag.paid{background:#1d3451;color:#a9ceff}
 .debtor-nav a span{width:19px;text-align:center;font-size:17px;color:#8e98a8}
 .debtor-nav a:hover,.debtor-nav a:focus,.debtor-nav a.active{background:#202b39;border-color:#2687df;color:#fff;outline:none}
 .debtor-nav a:active{transform:scale(.98)}
+.debtor-nav button{display:flex;align-items:center;gap:10px;padding:11px 10px;border:1px solid transparent;border-radius:11px;background:transparent;color:#aeb4bf;text-align:left;font-size:11px;font-weight:700;cursor:pointer;transition:background .2s,border-color .2s,color .2s,transform .2s;width:100%}.debtor-nav button span{width:19px;text-align:center;font-size:17px;color:#8e98a8}.debtor-nav button:hover,.debtor-nav button:focus{background:#202b39;border-color:#2687df;color:#fff;outline:none}.debtor-nav button:active{transform:scale(.98)}
+
 .debtor-sidebar-status{display:flex;align-items:center;gap:7px;margin-top:auto;padding:18px 4px 2px;border-top:1px solid rgba(255,255,255,.09)}
 .debtor-status-dot{width:8px;height:8px;border-radius:50%;background:#32b879;flex:0 0 auto}
 .debtor-status-dot.late{background:#ff5964}.debtor-status-dot.today{background:#f2a93b}.debtor-status-dot.paid{background:#4d9fff}
@@ -1640,6 +1642,8 @@ function render() {
             <a href="#alan-payments-${debtorId}"><span>↗</span> Historial de abonos</a>
             <a href="#alan-due-${debtorId}"><span>◷</span> Vencimiento</a>
             <a href="#alan-notes-${debtorId}"><span>▤</span> Observaciones</a>
+            <button type="button" data-action="pay" data-id="${debtorId}"><span>＋</span> Registrar abono</button>
+            <button type="button" data-action="edit" data-id="${debtorId}"><span>✎</span> Editar datos</button>
           </nav>
           <div class="debtor-sidebar-status"><span class="debtor-status-dot ${tagClass}"></span><span class="tag ${tagClass}">${tagText}</span></div>
         </aside>
