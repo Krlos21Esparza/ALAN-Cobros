@@ -2331,7 +2331,7 @@ document.getElementById("authSignupBtn").addEventListener("click",async()=>{
  document.getElementById("authLoginBtn").disabled=true;
  alanMsg("Creando tu cuenta...");
  try{
-  const {data,error}=await alanClient.auth.signUp({email,password});
+  const {data,error}=await alanClient.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname}});
   if(error)throw error;
   if(data.session){
    await alanActivate(data.session);
