@@ -1774,6 +1774,13 @@ $("personForm").addEventListener("submit",async event => {
       }
       if(!await guardarDatos())throw new Error("No se pudieron guardar las referencias de los archivos.");
       await alanRefreshPrivateMedia();
+      if(existing&&existing.photoPath){
+        const currentPerson=people.find(p=>p.id===person.id);
+        if(currentPerson&&currentPerson.photoPath!==existing.photoPath){
+          const {error:oldPhotoError}=await bucket.remove([existing.photoPath]);
+          if(oldPhotoError)console.warn("La foto anterior no se pudo eliminar:",oldPhotoError);
+        }
+      }
     }catch(mediaError){
       console.error("Error al guardar documentos privados:",mediaError);
       if(uploaded.length){const {error}=await alanClient.storage.from("alan-private-documents").remove(uploaded);if(error)console.error("No se pudieron limpiar archivos incompletos:",error);}
@@ -2205,7 +2212,7 @@ async function alanSaveCloud(){
   alanBusy=true;
   const normalized=people.map(p=>({...p,id:alanUuid(p.id),payments:(p.payments||[]).map(a=>({...a,id:alanUuid(a.id)}))}));
   people=normalized;
-  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",photo_path:p.photoPath||null,identity_docs:Array.isArray(p.identityDocs)?p.identityDocs:[],created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
+  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",photo_path:p.photoPath||null,identity_docs:Array.isArray(p.identityDocs)?p.identityDocs.map(doc=>({path:doc.path,name:doc.name,type:doc.type,size:doc.size,uploadedAt:doc.uploadedAt||null})):[],created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
   const ar=people.flatMap(p=>(p.payments||[]).map(a=>({id:a.id,owner_id:a.ownerId||p.ownerId||alanUser.id,person_id:p.id,amount:Number(a.amount||0),payment_date:a.date||today(),note:a.note||""})));
   const nowP=new Set(pr.map(x=>x.id)),nowA=new Set(ar.map(x=>x.id));
   const goneA=[...alanKnownPayments].filter(x=>!nowA.has(x));
