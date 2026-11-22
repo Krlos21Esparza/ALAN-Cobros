@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#d71920">
+<meta name="theme-color" content="#b91f3b">
 <meta name="description" content="Sistema ALAN de control de cobros y deudores.">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icons/alan-192.svg" type="image/svg+xml">
@@ -136,9 +136,20 @@ h2 {
   min-width:0;
 }
 
-.field.full {
-  grid-column:1/-1;
-}
+.field.full{grid-column:1/-1}
+.media-panel{grid-column:1/-1;border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafafa}
+.media-panel h3{font-size:14px;margin-bottom:8px}
+.media-help{font-size:12px;color:#666;line-height:1.55;margin:6px 0 10px}
+.media-actions{display:flex;gap:9px;flex-wrap:wrap;margin:9px 0}
+.media-preview{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.media-preview img{width:76px;height:76px;object-fit:cover;border-radius:12px;border:1px solid var(--border)}
+.media-file-list{font-size:12px;color:#444;line-height:1.8;margin-top:8px;overflow-wrap:anywhere}
+.media-consent{display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.5;margin-top:12px;color:#333}
+.media-consent input{width:auto;margin-top:2px}
+.person-photo{width:64px;height:64px;object-fit:cover;border-radius:14px;border:2px solid #eee;flex-shrink:0}
+.person-media{display:flex;gap:10px;align-items:center;margin:12px 0;padding:10px;background:#fafafa;border:1px solid #eee;border-radius:12px}
+.person-doc-links{font-size:12px;display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
+.person-doc-links a{color:var(--red);font-weight:bold;text-decoration:underline}
 
 label {
   display:block;
@@ -522,6 +533,191 @@ footer {
 .auth-panel p{font-size:12px;color:#555;line-height:1.5;margin-bottom:12px}
 .auth-panel button{width:100%;min-height:46px;margin-top:8px}
 .pwa-help{font-size:12px;color:#555;line-height:1.5;text-align:center;margin-top:8px}
+
+/* ALAN Signature UI — CSS-only, optimized for low-end devices */
+:root{
+  color-scheme:light;
+  --red:#b91f3b;
+  --red-dark:#86172f;
+  --white:#fff;
+  --gray:#f3f5f8;
+  --muted:#647084;
+  --green:#087f63;
+  --orange:#a85b08;
+  --border:#e2e7ee;
+  --black:#182131;
+  --surface:#fff;
+  --canvas:#f3f5f8;
+  --ink:#202b3b;
+  --shadow-soft:0 5px 18px rgba(22,34,52,.055);
+  --shadow-card:0 9px 26px rgba(22,34,52,.075);
+}
+html{background:var(--canvas);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  background:
+    radial-gradient(ellipse at 8% 0%,rgba(185,31,59,.055),transparent 34rem),
+    var(--canvas);
+  color:var(--ink);
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:960px;background:transparent;padding:20px 22px 28px}
+header{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:linear-gradient(118deg,#74172f 0%,#b91f3b 53%,#28364a 120%);
+  color:#fff;padding:22px 24px;border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;margin-bottom:18px;
+  box-shadow:0 10px 26px rgba(103,21,45,.15);
+}
+header:after{
+  content:"";position:absolute;z-index:-1;width:190px;height:190px;
+  right:-72px;top:-104px;border:1px solid rgba(255,255,255,.13);
+  border-radius:50%;box-shadow:0 0 0 22px rgba(255,255,255,.035),0 0 0 46px rgba(255,255,255,.025);
+  pointer-events:none;
+}
+.top{min-height:48px}
+.brand{font-size:28px;letter-spacing:.045em;font-weight:850}
+.brand small{font-size:10px;letter-spacing:.17em;color:#ffe8ed;font-weight:650}
+.status{background:rgba(18,27,42,.38);border:1px solid rgba(255,255,255,.18);padding:9px 12px;border-radius:12px;color:#fff}
+.btn-signout{background:rgba(16,25,39,.3);border:1px solid rgba(255,255,255,.25);color:#fff;min-height:42px}
+h2{font-size:19px;letter-spacing:-.025em;color:#202b3b;margin:20px 0 14px}
+.stats{gap:12px;margin-bottom:18px}
+.stat{
+  position:relative;overflow:hidden;padding:17px 17px 16px;
+  border:1px solid var(--border);border-left:0;border-radius:15px;
+  background:linear-gradient(145deg,#fff,#fafbfc);box-shadow:var(--shadow-soft);
+}
+.stat:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red)}
+.stat span{color:#687487;font-size:10px;font-weight:750;letter-spacing:.075em}
+.stat strong{display:block;color:#202b3b;font-size:22px;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:19px;margin-bottom:17px;box-shadow:var(--shadow-soft);
+}
+.panel h2{margin-top:2px;padding-bottom:12px;border-bottom:1px solid #edf0f4}
+.field{margin-bottom:13px}
+label{font-size:12px;font-weight:700;color:#3a4658;letter-spacing:.005em}
+input,textarea,select{
+  min-height:46px;padding:12px 13px;border:1px solid #d7dee8;border-radius:11px;
+  background:#fbfcfe;color:#1d2939;font-size:15px;font-family:inherit;
+  transition:border-color .14s ease,box-shadow .14s ease,background-color .14s ease;
+}
+textarea{min-height:84px}
+input::placeholder,textarea::placeholder{color:#8994a4}
+input:focus,textarea:focus,select:focus{
+  border-color:#b91f3b;background:#fff;outline:none;
+  box-shadow:0 0 0 3px rgba(185,31,59,.11);
+}
+button,.media-actions label{
+  min-height:44px;border-radius:11px;font-family:inherit;font-weight:750;
+  letter-spacing:.015em;transition:transform .12s ease,background-color .14s ease,border-color .14s ease,box-shadow .14s ease;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+button:active{transform:translateY(1px) scale(.99)}
+button:focus-visible,.media-actions label:focus-visible,a:focus-visible{
+  outline:3px solid rgba(185,31,59,.3);outline-offset:2px
+}
+.btn-red{background:linear-gradient(135deg,#c32a48,#971a36);color:#fff;box-shadow:0 4px 11px rgba(185,31,59,.16)}
+.btn-red:hover{background:linear-gradient(135deg,#ad203e,#80152e)}
+.btn-black{background:#202b3b;color:#fff}
+.btn-black:hover{background:#111b2a}
+.btn-gray{background:#edf1f5;color:#334155;border:1px solid #e0e5eb}
+.btn-gray:hover{background:#e3e9f0}
+.btn-green{background:#087f63;color:#fff}
+.btn-green:hover{background:#066c55}
+.btn-danger{background:#fff0f1;color:#a51d35;border:1px solid #f4d5dc}
+.btn-small{min-height:40px;padding:9px 12px}
+.actions{gap:9px}
+.actions button{min-height:46px}
+.search{border:1px solid #d7dee8;background:#fff;margin-bottom:13px}
+.person{
+  background:#fff;border:1px solid var(--border);border-radius:16px;
+  padding:16px;margin-bottom:13px;box-shadow:var(--shadow-soft);
+  transition:border-color .14s ease,box-shadow .14s ease;
+}
+.person:hover{border-color:#d4dbe5;box-shadow:var(--shadow-card)}
+.person-name{font-size:17px;letter-spacing:-.02em;color:#202b3b}
+.person-date{color:#687487}
+.balance{color:#a51d35;font-size:25px;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.details{background:#f5f7fa;border:1px solid #edf0f4;border-radius:12px}
+.detail span{color:#687487}
+.detail strong{color:#263448;font-variant-numeric:tabular-nums}
+.tag{padding:7px 10px;border-radius:9px;letter-spacing:.035em}
+.tag.late{background:#fff0f1;color:#a51d35}
+.tag.ok{background:#e8f6f1;color:#087052}
+.tag.today{background:#fff5e5;color:#94520a}
+.tag.paid{background:#edf3ff;color:#244f91}
+.countdown{border-radius:14px}
+.countdown-number{font-variant-numeric:tabular-nums}
+.payments{border-top-color:#edf0f4}
+.payment-row{border-bottom-color:#edf0f4}
+.payment-row strong{color:#087f63}
+.media-panel{background:#f7f8fa;border-color:#e5e9ef;border-radius:13px}
+.media-preview img,.person-photo{border-color:#dce2ea}
+.person-media{background:#f7f8fa;border-color:#e5e9ef;border-radius:13px}
+.person-doc-links a{color:#a51d35}
+.notice{border:1px solid #f0dfb2;border-left:4px solid #c17b18;border-radius:11px}
+#storageNotice{box-shadow:var(--shadow-soft)}
+.empty{background:#f7f8fa;border:1px dashed #d9e0e9;border-radius:14px;color:#687487}
+footer{color:#7b8797}
+.toast{border:1px solid rgba(255,255,255,.12);border-radius:13px;box-shadow:0 9px 25px rgba(15,23,42,.18)}
+.auth-screen{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:radial-gradient(ellipse at 12% 8%,rgba(185,31,59,.13),transparent 34rem),
+             radial-gradient(ellipse at 94% 92%,rgba(8,127,99,.08),transparent 30rem),#f1f3f7;
+  padding:22px;
+}
+.auth-card{
+  border:1px solid rgba(220,226,235,.9);border-radius:22px;padding:28px;
+  box-shadow:0 18px 50px rgba(25,36,54,.11);background:rgba(255,255,255,.97);
+  animation:alanEnter .24s ease-out both;
+}
+.auth-brand{font-size:32px;letter-spacing:-.04em;color:#a51d35}
+.auth-subtitle{color:#687487}
+.auth-card .field{margin-bottom:15px}
+.auth-card button{min-height:48px;border-radius:12px}
+.pwa-install{background:linear-gradient(118deg,#b91f3b,#80172f 72%,#253348);border:0;box-shadow:0 7px 16px rgba(185,31,59,.17)}
+.auth-panel{background:#fff7f8;border-color:#efd7dd;border-radius:14px}
+.auth-panel h3{color:#a51d35}
+.auth-link{color:#a51d35}
+.pwa-help{color:#687487}
+@keyframes alanEnter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(hover:none){.person:hover{box-shadow:var(--shadow-soft);border-color:var(--border)}}
+@media(max-width:600px){
+  .app{padding:12px 11px 22px}
+  header{padding:17px 16px;border-radius:16px}
+  .brand{font-size:24px}
+  .brand small{font-size:9px;letter-spacing:.12em}
+  .status{font-size:10px;padding:8px}
+  .btn-signout{font-size:10px;padding:8px}
+  .stats{gap:9px}
+  .stat{padding:14px 12px 13px;border-radius:13px}
+  .stat span{font-size:9px;letter-spacing:.04em}
+  .stat strong{font-size:19px}
+  .panel{padding:15px;border-radius:15px}
+  .person{padding:14px;border-radius:14px}
+  .person-top{flex-direction:row;align-items:flex-start}
+  .countdown{padding:13px}
+  .countdown-number{font-size:26px}
+  .actions button{min-width:calc(50% - 6px)}
+  .auth-screen{padding:16px}
+  .auth-card{padding:23px 19px;border-radius:19px}
+}
+@media(max-width:360px){
+  .top{align-items:flex-start}
+  .top>div:last-child{gap:5px!important}
+  .brand{font-size:21px}
+  .status{padding:7px 8px}
+  .btn-signout{padding:7px 8px}
+  .stat strong{font-size:17px}
+  .actions button{min-width:100%}
+}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
 </style>
 </head>
 
@@ -640,8 +836,27 @@ footer {
 
       <div class="field full">
         <label for="personNotes">Observaciones</label>
-        <textarea id="personNotes"
-          placeholder="Información adicional..."></textarea>
+        <textarea id="personNotes" placeholder="Información adicional..."></textarea>
+      </div>
+      <div class="media-panel">
+        <h3>📷 Fotografía de la persona (opcional)</h3>
+        <p class="media-help">Toma una foto con la cámara o selecciona una imagen de tu teléfono.</p>
+        <div class="media-actions">
+          <label class="btn-red btn-small" for="personPhotoCamera">TOMAR FOTO</label>
+          <label class="btn-gray btn-small" for="personPhotoFile">SUBIR IMAGEN</label>
+        </div>
+        <input id="personPhotoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="user" class="hidden">
+        <input id="personPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+        <div id="personPhotoPreview" class="media-preview"></div>
+      </div>
+      <div class="media-panel">
+        <h3>🪪 Identificación y documentos oficiales (opcional)</h3>
+        <p class="media-help">Sube fotos o PDF del INE, pasaporte u otra identificación oficial. Puedes seleccionar varios archivos, por ejemplo, frente y reverso del INE. Máximo 8 archivos de 10 MB cada uno.</p>
+        <input id="personIdentityFiles" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple>
+        <div id="personIdentitySelection" class="media-file-list">No hay archivos nuevos seleccionados.</div>
+        <div id="personExistingDocs" class="media-file-list"></div>
+        <label class="media-consent"><input id="personMediaConsent" type="checkbox"><span>Confirmo que la persona conoce y autorizó que ALAN almacene su fotografía y/o documentos para gestionar esta cuenta.</span></label>
+        <p class="media-help">Los documentos se guardan en un espacio privado. Solo las cuentas autorizadas pueden consultarlos. Sube únicamente los documentos necesarios.</p>
       </div>
 
     </div>
@@ -1001,7 +1216,11 @@ function normalizarPersona(person) {
     phone:String(person.phone || person.telefono || ""),
 
     notes:String(person.notes || person.observaciones || ""),
-
+    photoPath:person.photoPath || person.photo_path || null,
+    photoUrl:null,
+    identityDocs:Array.isArray(person.identityDocs || person.identity_docs)
+      ? (person.identityDocs || person.identity_docs).map(doc=>({path:String(doc.path||""),name:String(doc.name||"Documento"),type:String(doc.type||""),size:Number(doc.size||0),uploadedAt:doc.uploadedAt||doc.uploaded_at||null,url:null})).filter(doc=>doc.path)
+      : [],
     createdAt:person.createdAt || new Date().toISOString(),
 
     payments
@@ -1392,6 +1611,9 @@ function render() {
 
     }
 
+    const mediaHTML=(person.photoUrl||(person.identityDocs||[]).length)
+      ? `<div class="person-media">${person.photoUrl?'<img class="person-photo" alt="Fotografía del cliente" src="'+escapeHTML(person.photoUrl)+'">':'<span style="font-size:28px">🪪</span>'}<div><strong style="font-size:12px">Expediente privado</strong><div class="person-doc-links">${(person.identityDocs||[]).map((doc,i)=>doc.url?'<a href="'+escapeHTML(doc.url)+'" target="_blank" rel="noopener">Documento '+(i+1)+': '+escapeHTML(doc.name)+'</a>':'<span>Documento '+(i+1)+' guardado</span>').join("")}</div></div></div>`
+      : "";
     const payments = person.payments.length
       ? person.payments.map(payment => `
           <div class="payment-row">
@@ -1447,6 +1669,7 @@ function render() {
         </div>
 
         ${countdownHTML}
+        ${mediaHTML}
 
         <div class="balance">
           ${money(calc.saldo)}
@@ -1543,9 +1766,34 @@ function render() {
    GUARDAR Y EDITAR PERSONAS
 ========================================== */
 
+let alanSelectedPhotoFile=null;
+let alanSelectedIdentityFiles=[];
+
+function alanClearMediaSelection(){
+ alanSelectedPhotoFile=null;alanSelectedIdentityFiles=[];
+ $("personPhotoCamera").value="";$("personPhotoFile").value="";
+ $("personIdentityFiles").value="";$("personPhotoPreview").innerHTML="";
+ $("personIdentitySelection").textContent="No hay archivos nuevos seleccionados.";
+ $("personExistingDocs").innerHTML="";$("personMediaConsent").checked=false;
+}
+function alanPreviewPhoto(file){
+ const url=URL.createObjectURL(file);
+ $("personPhotoPreview").innerHTML='<img alt="Vista previa" src="'+escapeHTML(url)+'"><span class="media-help">'+escapeHTML(file.name||"Foto seleccionada")+'</span>';
+}
+function alanRenderExistingMedia(person){
+ $("personPhotoPreview").innerHTML=person&&person.photoUrl
+  ? '<div class="media-preview"><img alt="Fotografía del cliente" src="'+escapeHTML(person.photoUrl)+'"><span class="media-help">Fotografía privada guardada.</span></div>'
+  : (person&&person.photoPath?'<p class="media-help">La fotografía está guardada de forma privada. Conéctate para verla.</p>':"");
+ const docs=person&&Array.isArray(person.identityDocs)?person.identityDocs:[];
+ $("personExistingDocs").innerHTML=docs.length
+  ? '<strong>Documentos guardados:</strong><br>'+docs.map((doc,i)=>'<div>📄 '+escapeHTML(doc.name)+(doc.url?' · <a href="'+escapeHTML(doc.url)+'" target="_blank" rel="noopener">Abrir documento '+(i+1)+'</a>':' · Guardado de forma privada')+'</div>').join("")
+  : "";
+}
+
 function limpiarFormulario() {
 
   $("personForm").reset();
+  alanClearMediaSelection();
 
   $("personId").value = "";
 
@@ -1581,6 +1829,8 @@ function editarPersona(id) {
   $("personPhone").value = person.phone;
 
   $("personNotes").value = person.notes;
+  alanClearMediaSelection();
+  alanRenderExistingMedia(person);
 
   $("formTitle").textContent = "✏️ Editar persona";
 
@@ -1597,6 +1847,9 @@ function editarPersona(id) {
 
 }
 
+$("personPhotoCamera").addEventListener("change",event=>{const file=event.target.files&&event.target.files[0];if(file){alanSelectedPhotoFile=file;$("personPhotoFile").value="";alanPreviewPhoto(file);}});
+$("personPhotoFile").addEventListener("change",event=>{const file=event.target.files&&event.target.files[0];if(file){alanSelectedPhotoFile=file;$("personPhotoCamera").value="";alanPreviewPhoto(file);}});
+$("personIdentityFiles").addEventListener("change",event=>{alanSelectedIdentityFiles=Array.from(event.target.files||[]);$("personIdentitySelection").textContent=alanSelectedIdentityFiles.length?alanSelectedIdentityFiles.map(file=>file.name+" ("+(file.size/1048576).toFixed(2)+" MB)").join(" · "):"No hay archivos nuevos seleccionados.";});
 $("personForm").addEventListener("submit",async event => {
 
   event.preventDefault();
@@ -1639,8 +1892,21 @@ $("personForm").addEventListener("submit",async event => {
     ? people.find(p => p.id === id)
     : null;
 
+  const photoFile=alanSelectedPhotoFile;
+  const identityFiles=alanSelectedIdentityFiles.slice();
+  const hasNewMedia=!!photoFile||identityFiles.length>0;
+  if(hasNewMedia&&(!alanClient||!alanUser||!navigator.onLine)){mostrarToast("Para subir fotos o identificaciones necesitas conexión a internet e iniciar sesión.");return;}
+  if(hasNewMedia&&!$("personMediaConsent").checked){mostrarToast("Confirma que tienes autorización de la persona para guardar sus documentos.");return;}
+  const imageTypes=["image/jpeg","image/png","image/webp"];
+  if(photoFile&&(!imageTypes.includes(photoFile.type)||photoFile.size>10*1024*1024)){mostrarToast("La foto debe ser JPG, PNG o WebP y pesar máximo 10 MB.");return;}
+  if(identityFiles.length>8||identityFiles.some(file=>(!imageTypes.includes(file.type)&&file.type!=="application/pdf")||file.size>10*1024*1024)){mostrarToast("Máximo 8 documentos JPG, PNG, WebP o PDF de hasta 10 MB cada uno.");return;}
+
   const person = {
-    id:existing ? existing.id : generarId(),
+    id:existing ? existing.id : (alanUser?alanUuid(generarId()):generarId()),
+    ownerId:existing?existing.ownerId:(alanUser?alanUser.id:null),
+    photoPath:existing?existing.photoPath:null,
+    photoUrl:existing?existing.photoUrl:null,
+    identityDocs:existing?(existing.identityDocs||[]):[],
 
     name,
 
@@ -1675,17 +1941,41 @@ $("personForm").addEventListener("submit",async event => {
 
   }
 
-  const saved = await guardarDatos();
-
-  render();
-
-  limpiarFormulario();
-
-  mostrarToast(
-    saved
-      ? (existing ? "Persona actualizada correctamente." : "Persona registrada correctamente.")
-      : "Registro realizado, pero no se pudo guardar permanentemente. Descarga una copia."
-  );
+  let saved=await guardarDatos();
+  if(saved&&hasNewMedia){
+    const uploaded=[];
+    try{
+      const owner=person.ownerId||alanUser.id,bucket=alanClient.storage.from("alan-private-documents");
+      const ext=file=>file.type==="application/pdf"?"pdf":file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+      if(photoFile){
+        const path=owner+"/"+person.id+"/photo-"+alanUuid(generarId())+"."+ext(photoFile);
+        const {error}=await bucket.upload(path,photoFile,{contentType:photoFile.type,upsert:false});if(error)throw error;
+        uploaded.push(path);const activePerson=people.find(p=>p.id===person.id);if(!activePerson)throw new Error("No se encontró el registro para asociar la fotografía.");activePerson.photoPath=path;
+      }
+      for(const file of identityFiles){
+        const path=owner+"/"+person.id+"/identity-"+alanUuid(generarId())+"."+ext(file);
+        const {error}=await bucket.upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;
+        uploaded.push(path);const activePerson=people.find(p=>p.id===person.id);if(!activePerson)throw new Error("No se encontró el registro para asociar el documento.");activePerson.identityDocs.push({path,name:String(file.name||"Documento").slice(0,180),type:file.type,size:file.size,uploadedAt:new Date().toISOString()});
+      }
+      if(!await guardarDatos())throw new Error("No se pudieron guardar las referencias de los archivos.");
+      await alanRefreshPrivateMedia();
+      if(existing&&existing.photoPath){
+        const currentPerson=people.find(p=>p.id===person.id);
+        if(currentPerson&&currentPerson.photoPath!==existing.photoPath){
+          const {error:oldPhotoError}=await bucket.remove([existing.photoPath]);
+          if(oldPhotoError)console.warn("La foto anterior no se pudo eliminar:",oldPhotoError);
+        }
+      }
+    }catch(mediaError){
+      console.error("Error al guardar documentos privados:",mediaError);
+      if(uploaded.length){const {error}=await alanClient.storage.from("alan-private-documents").remove(uploaded);if(error)console.error("No se pudieron limpiar archivos incompletos:",error);}
+      const rollbackPerson=people.find(p=>p.id===person.id);if(rollbackPerson){rollbackPerson.photoPath=existing?existing.photoPath:null;rollbackPerson.identityDocs=existing?(existing.identityDocs||[]):[];}
+      await guardarDatos();mostrarToast("La persona se guardó, pero no se pudieron adjuntar los archivos: "+(mediaError.message||"error"));
+      render();limpiarFormulario();return;
+    }
+  }
+  render();limpiarFormulario();
+  mostrarToast(saved?(existing?"Persona actualizada correctamente.":"Persona registrada correctamente.")+(hasNewMedia?" Documentos privados guardados.":""):"Registro realizado, pero no se pudo guardar permanentemente. Descarga una copia.");
 
 });
 
@@ -1853,6 +2143,15 @@ $("peopleList").addEventListener("click",async event => {
     );
 
     if (!confirmed) return;
+
+    const privatePaths=[...(person.photoPath?[person.photoPath]:[]),...(person.identityDocs||[]).map(doc=>doc.path).filter(Boolean)];
+    if(privatePaths.length&&alanClient&&navigator.onLine){
+      const {error:storageError}=await alanClient.storage.from("alan-private-documents").remove(privatePaths);
+      if(storageError){mostrarToast("No se pudieron eliminar los documentos privados. La persona no fue eliminada.");return;}
+    }else if(privatePaths.length){
+      mostrarToast("Conéctate a internet para eliminar primero los documentos privados de esta persona.");
+      return;
+    }
 
     people = people.filter(p => p.id !== id);
 
@@ -2068,13 +2367,25 @@ function alanShowLogin(){document.querySelector(".app").classList.add("hidden");
 function alanShowPasswordRecovery(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");document.getElementById("authForm").classList.add("hidden");document.getElementById("forgotPasswordPanel").classList.add("hidden");document.getElementById("newPasswordPanel").classList.remove("hidden");alanMsg("Verifica tu nueva contraseña. Estás usando un enlace seguro de recuperación.");}
 function alanResetAuthPanels(){document.getElementById("authForm").classList.remove("hidden");document.getElementById("forgotPasswordPanel").classList.add("hidden");document.getElementById("newPasswordPanel").classList.add("hidden");}
 
+async function alanRefreshPrivateMedia(){
+ if(!alanClient||!alanUser)return;
+ const bucket=alanClient.storage.from("alan-private-documents");
+ await Promise.all(people.map(async person=>{
+  person.photoUrl=null;
+  if(person.photoPath){const {data,error}=await bucket.createSignedUrl(person.photoPath,600);if(!error&&data)person.photoUrl=data.signedUrl;}
+  person.identityDocs=await Promise.all((person.identityDocs||[]).map(async doc=>{
+   const {data,error}=await bucket.createSignedUrl(doc.path,600);return {...doc,url:!error&&data?data.signedUrl:null};
+  }));
+ }));
+ render();
+}
 async function alanLoadCloud(){
  const [p,a]=await Promise.all([alanClient.from("alan_people").select("*").order("created_at",{ascending:false}),alanClient.from("alan_payments").select("*").order("payment_date",{ascending:false})]);
  if(p.error)throw p.error;if(a.error)throw a.error;
  alanKnownPeople=new Set((p.data||[]).map(x=>x.id));alanKnownPayments=new Set((a.data||[]).map(x=>x.id));
  const map=new Map();(a.data||[]).forEach(x=>{if(!map.has(x.person_id))map.set(x.person_id,[]);map.get(x.person_id).push({id:x.id,ownerId:x.owner_id,amount:Number(x.amount),date:x.payment_date,note:x.note||""});});
- people=(p.data||[]).map(x=>normalizarPersona({id:x.id,ownerId:x.owner_id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
- storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();
+ people=(p.data||[]).map(x=>normalizarPersona({id:x.id,ownerId:x.owner_id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",photoPath:x.photo_path,identityDocs:x.identity_docs||[],createdAt:x.created_at,payments:map.get(x.id)||[]}));
+ storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();await alanRefreshPrivateMedia();
  const cloudWasInitialized=localStorage.getItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id)==="1";
  if((p.data||[]).length>0||cloudWasInitialized){
   try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);localStorage.setItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id,"1");}catch(e){console.warn(e);}
@@ -2086,7 +2397,7 @@ async function alanSaveCloud(){
   alanBusy=true;
   const normalized=people.map(p=>({...p,id:alanUuid(p.id),payments:(p.payments||[]).map(a=>({...a,id:alanUuid(a.id)}))}));
   people=normalized;
-  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
+  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",photo_path:p.photoPath||null,identity_docs:Array.isArray(p.identityDocs)?p.identityDocs.map(doc=>({path:doc.path,name:doc.name,type:doc.type,size:doc.size,uploadedAt:doc.uploadedAt||null})):[],created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
   const ar=people.flatMap(p=>(p.payments||[]).map(a=>({id:a.id,owner_id:a.ownerId||p.ownerId||alanUser.id,person_id:p.id,amount:Number(a.amount||0),payment_date:a.date||today(),note:a.note||""})));
   const nowP=new Set(pr.map(x=>x.id)),nowA=new Set(ar.map(x=>x.id));
   const goneA=[...alanKnownPayments].filter(x=>!nowA.has(x));
