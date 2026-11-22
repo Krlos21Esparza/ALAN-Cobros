@@ -3,22 +3,32 @@
    y disponer de una sesión local válida para acceder a datos privados sin red. */
 (() => {
   "use strict";
-  const PENDING_KEY = "alan_offline_pending_v1";
-  const BASELINE_KEY = "alan_cloud_baseline_v1";
+  const LEGACY_PENDING_KEY = "alan_offline_pending_v1";
+  const pendingKey = userId => "alan_offline_pending_v2:" + String(userId || "");
+  const baselineKey = userId => "alan_cloud_baseline_v2:" + String(userId || "");
   let flushing = false;
   let cloudLoaded = false;
 
   const clone = value => JSON.parse(JSON.stringify(value ?? []));
-  const readPending = () => {
-    try { return JSON.parse(localStorage.getItem(PENDING_KEY) || "null"); }
-    catch (_) { return null; }
-  };
-  const writeBaseline = () => {
+  const readPending = (userId = alanUser && alanUser.id) => {
+    if (!userId) return null;
     try {
-      localStorage.setItem(BASELINE_KEY, JSON.stringify({
-        people: [...(alanKnownPeople || [])],
-        payments: [...(alanKnownPayments || [])]
-      }));
+      const current = JSON.parse(localStorage.getItem(pendingKey(userId)) || "null");
+      if (current && current.userId === userId) return current;
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_PENDING_KEY) || "null");
+      if (legacy && localStorage.getItem(ALAN_LOCAL_OWNER) === userId && (!legacy.userId || legacy.userId === userId)) {
+        legacy.userId = userId;
+        localStorage.setItem(pendingKey(userId), JSON.stringify(legacy));
+        localStorage.removeItem(LEGACY_PENDING_KEY);
+        return legacy;
+      }
+    } catch (_) {}
+    return null;
+  };
+  const writeBaseline = (userId = alanUser && alanUser.id) => {
+    if (!userId) return;
+    try {
+      localStorage.setItem(baselineKey(userId), JSON.stringify({userId, people:[...(alanKnownPeople || [])], payments:[...(alanKnownPayments || [])]}));
     } catch (error) { console.warn("ALAN: no se pudo guardar la referencia de nube", error); }
   };
   const restoreBaseline = baseline => {
@@ -60,8 +70,8 @@
       render();
       const ok = await cloudSave();
       if (!ok) throw new Error("El servidor no confirmó la sincronización.");
-      localStorage.removeItem(PENDING_KEY);
-      writeBaseline();
+      localStorage.removeItem(pendingKey(alanUser.id));
+      writeBaseline(alanUser.id);
       showState("✓ Cambios guardados en este dispositivo y sincronizados con Supabase.", "#16743c");
       return true;
     } catch (error) {
@@ -76,12 +86,14 @@
   guardarDatos = async function guardarDatosOfflineFirst() {
     try {
       await saveLocal();
-      let pending = readPending();
+      if (!alanUser || !alanUser.id) throw new Error("No hay una cuenta autenticada para asociar los cambios.");
+      let pending = readPending(alanUser.id);
       if (!pending) {
         let baseline = null;
-        try { baseline = JSON.parse(localStorage.getItem(BASELINE_KEY) || "null"); } catch (_) {}
+        try { baseline = JSON.parse(localStorage.getItem(baselineKey(alanUser.id)) || "null"); } catch (_) {}
         pending = {
-          version: 1,
+          version: 2,
+          userId: alanUser.id,
           createdAt: new Date().toISOString(),
           baseline: baseline || {
             people: [...(alanKnownPeople || [])],
@@ -91,7 +103,7 @@
       }
       pending.snapshot = clone(people);
       pending.updatedAt = new Date().toISOString();
-      localStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+      localStorage.setItem(pendingKey(alanUser.id), JSON.stringify(pending));
       showState("✓ Guardado en este dispositivo · pendiente de sincronización.", "#9a5b00");
       if (navigator.onLine && alanUser) await flushPending();
       return true;
@@ -103,8 +115,8 @@
   };
 
   alanLoadCloud = async function alanLoadCloudWithOfflineQueue() {
-    if (readPending()) {
-      const pending = readPending();
+    if (readPending(alanUser && alanUser.id)) {
+      const pending = readPending(alanUser && alanUser.id);
       people = clone(pending.snapshot || []).map(normalizarPersona);
       restoreBaseline(pending.baseline);
       render();
@@ -123,7 +135,7 @@
   alanActivate = async function activateWithOfflineSupport(session) {
     if (!session || !session.user) return;
     alanUser = session.user;
-    const pending = readPending();
+    const pending = readPending(session.user.id);
     const owner = localStorage.getItem(ALAN_LOCAL_OWNER);
     if (!navigator.onLine) {
       if (owner && owner !== alanUser.id) {
@@ -137,6 +149,7 @@
         return;
       }
       if (pending) {
+        if (pending.userId !== alanUser.id) throw new Error("La cola local no coincide con la cuenta iniciada.");
         people = clone(pending.snapshot || []).map(normalizarPersona);
         restoreBaseline(pending.baseline);
       }
@@ -179,7 +192,7 @@
     const originalLoad = alanLoadCloud;
     alanLoadCloud = async function() {
       await originalLoad();
-      if (!readPending()) writeBaseline();
+      if (!readPending(alanUser && alanUser.id)) writeBaseline(alanUser && alanUser.id);
     };
   }
 
@@ -233,8 +246,8 @@
   // Estado inicial visible, incluso antes del primer intento de sincronización.
   if (!navigator.onLine) {
     showState("⚠ Sin conexión · ALAN usará los datos guardados en este dispositivo.", "#9a5b00");
-  } else if (readPending()) {
+  } else if (readPending(alanUser && alanUser.id)) {
     showState("⏳ Hay cambios locales esperando sincronización con Supabase.", "#9a5b00");
   }
-  window.ALANOffline = { flushPending, hasPending: () => !!readPending() };
+  window.ALANOffline = { flushPending, hasPending: () => !!readPending(alanUser && alanUser.id) };
 })();
