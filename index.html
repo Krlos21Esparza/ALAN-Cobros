@@ -1096,6 +1096,41 @@ function calcularPersona(person) {
    NORMALIZAR REGISTROS
 ========================================== */
 
+function actualizarCuentaRegresiva(){
+  const now=Date.now();
+  document.querySelectorAll("[data-countdown-clock]").forEach(clock=>{
+    const raw=clock.dataset.dueDate||"";
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return;
+    const [year,month,day]=raw.split("-").map(Number);
+    const deadline=new Date(year,month-1,day+1,0,0,0,0).getTime();
+    let days=0,hours=0,minutes=0,seconds=0;
+    const overdue=now>=deadline;
+    if(overdue){
+      days=Math.max(1,Math.floor((now-deadline)/86400000)+1);
+      clock.classList.add("danger");
+      clock.querySelector(".countdown-label").textContent="TIEMPO DE ATRASO";
+      clock.querySelector(".flip-status").textContent="La fecha de pago ya venció. Se aplica la multa diaria configurada.";
+    }else{
+      let remaining=Math.max(0,deadline-now);
+      days=Math.floor(remaining/86400000);remaining%=86400000;
+      hours=Math.floor(remaining/3600000);remaining%=3600000;
+      minutes=Math.floor(remaining/60000);remaining%=60000;
+      seconds=Math.floor(remaining/1000);
+      clock.querySelector(".countdown-label").textContent="TIEMPO RESTANTE PARA PAGAR";
+      clock.querySelector(".flip-status").textContent="El contador se actualiza automáticamente cada segundo.";
+    }
+    const values={days:String(days).padStart(3,"0"),hours:String(hours).padStart(2,"0"),minutes:String(minutes).padStart(2,"0"),seconds:String(seconds).padStart(2,"0")};
+    Object.entries(values).forEach(([unit,value])=>{
+      const card=clock.querySelector('[data-unit="'+unit+'"] .flip-card');
+      const number=card&&card.querySelector(".flip-value");
+      if(!number||number.textContent===value)return;
+      number.textContent=value;
+      card.classList.remove("is-flipping");void card.offsetWidth;card.classList.add("is-flipping");
+    });
+  });
+}
+setInterval(actualizarCuentaRegresiva,1000);
+
 function normalizarPersona(person) {
   const payments = Array.isArray(person.payments)
     ? person.payments.map(p => ({
