@@ -1766,30 +1766,45 @@ $("paymentForm").addEventListener("submit",async event => {
     return;
   }
 
+  const paymentId = generarId();
+
   person.payments.push({
-
-    id:generarId(),
-
+    id:paymentId,
     amount,
-
     date,
-
     note
-
   });
 
   const saved = await guardarDatos();
+  let emailNotice = "";
+
+  if (saved && alanClient && alanUser) {
+    try {
+      const { error: emailError } = await alanClient.functions.invoke(
+        "alan-payment-email",
+        { body: { paymentId } }
+      );
+      if (emailError) {
+        console.error("No se pudo enviar el aviso por correo:", emailError);
+        emailNotice = " El abono quedó guardado, pero no se pudo enviar el correo.";
+      } else {
+        emailNotice = " Se envió el aviso a tu correo.";
+      }
+    } catch (emailError) {
+      console.error("Error al solicitar el aviso por correo:", emailError);
+      emailNotice = " El abono quedó guardado, pero el correo está pendiente de configuración.";
+    }
+  }
 
   $("paymentForm").reset();
-
   $("paymentPanel").classList.add("hidden");
-
   render();
 
   mostrarToast(
-    saved
+    (saved
       ? "Abono registrado correctamente."
-      : "Abono registrado, pero el almacenamiento permanente no está disponible. Descarga una copia."
+      : "Abono registrado, pero el almacenamiento permanente no está disponible. Descarga una copia.")
+    + emailNotice
   );
 
 });
