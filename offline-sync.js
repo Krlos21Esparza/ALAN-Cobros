@@ -6,6 +6,7 @@
   const PENDING_KEY = "alan_offline_pending_v1";
   const BASELINE_KEY = "alan_cloud_baseline_v1";
   let flushing = false;
+  let cloudLoaded = false;
 
   const clone = value => JSON.parse(JSON.stringify(value ?? []));
   const readPending = () => {
@@ -115,6 +116,7 @@
       if (!synced) return;
     }
     await cloudLoad();
+    cloudLoaded = true;
     writeBaseline();
   };
 
@@ -153,7 +155,12 @@
         return;
       }
     }
+    cloudLoaded = false;
     await originalActivate(session);
+    if (!cloudLoaded && people.length) {
+      showState("⚠ No se pudo contactar con Supabase. ALAN conserva los datos locales y guardará aquí los cambios hasta recuperar la conexión.", "#9a5b00");
+      render();
+    }
   };
 
   window.addEventListener("online", () => {
@@ -174,6 +181,53 @@
       await originalLoad();
       if (!readPending()) writeBaseline();
     };
+  }
+
+
+  function mountNotificationControls() {
+    const app = document.querySelector(".app");
+    const notice = document.getElementById("storageNotice");
+    if (!app || !notice || document.getElementById("alanNotificationPanel")) return;
+    const panel = document.createElement("section");
+    panel.id = "alanNotificationPanel";
+    panel.className = "panel";
+    panel.innerHTML = '<h2>🔔 Notificaciones</h2><p style="font-size:12px;color:#666;line-height:1.5;margin-bottom:12px">Permite avisos de ALAN en este dispositivo. Los avisos push remotos también requieren conectar el servicio de envío seguro.</p><button type="button" class="btn-red" id="alanEnableNotifications">ACTIVAR AVISOS</button><p id="alanNotificationStatus" style="font-size:12px;color:#666;line-height:1.5;margin-top:10px" role="status"></p>';
+    notice.insertAdjacentElement("afterend", panel);
+    const button = document.getElementById("alanEnableNotifications");
+    const status = document.getElementById("alanNotificationStatus");
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      button.disabled = true;
+      status.textContent = "Este navegador no admite notificaciones web.";
+      return;
+    }
+    if (Notification.permission === "granted") {
+      button.textContent = "PERMISO ACTIVADO";
+      status.textContent = "Permiso concedido en este dispositivo. Falta conectar las claves VAPID y el servicio de envío para recibir push cuando ALAN esté cerrada.";
+    } else if (Notification.permission === "denied") {
+      status.textContent = "Las notificaciones están bloqueadas por el navegador. Actívalas desde los ajustes del sitio.";
+    }
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          await navigator.serviceWorker.ready;
+          button.textContent = "PERMISO ACTIVADO";
+          status.textContent = "Permiso concedido. Para enviar notificaciones push reales desde Supabase aún falta configurar VAPID y el servicio de envío.";
+        } else {
+          status.textContent = permission === "denied" ? "Permiso denegado. Cámbialo desde los ajustes del navegador." : "No se concedió el permiso.";
+        }
+      } catch (error) {
+        status.textContent = "No se pudo activar el permiso: " + (error.message || "error");
+      } finally {
+        button.disabled = Notification.permission === "granted";
+      }
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mountNotificationControls, { once: true });
+  } else {
+    mountNotificationControls();
   }
 
   // Estado inicial visible, incluso antes del primer intento de sincronización.
