@@ -136,9 +136,20 @@ h2 {
   min-width:0;
 }
 
-.field.full {
-  grid-column:1/-1;
-}
+.field.full{grid-column:1/-1}
+.media-panel{grid-column:1/-1;border:1px solid var(--border);border-radius:12px;padding:14px;background:#fafafa}
+.media-panel h3{font-size:14px;margin-bottom:8px}
+.media-help{font-size:12px;color:#666;line-height:1.55;margin:6px 0 10px}
+.media-actions{display:flex;gap:9px;flex-wrap:wrap;margin:9px 0}
+.media-preview{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.media-preview img{width:76px;height:76px;object-fit:cover;border-radius:12px;border:1px solid var(--border)}
+.media-file-list{font-size:12px;color:#444;line-height:1.8;margin-top:8px;overflow-wrap:anywhere}
+.media-consent{display:flex;align-items:flex-start;gap:9px;font-size:12px;line-height:1.5;margin-top:12px;color:#333}
+.media-consent input{width:auto;margin-top:2px}
+.person-photo{width:64px;height:64px;object-fit:cover;border-radius:14px;border:2px solid #eee;flex-shrink:0}
+.person-media{display:flex;gap:10px;align-items:center;margin:12px 0;padding:10px;background:#fafafa;border:1px solid #eee;border-radius:12px}
+.person-doc-links{font-size:12px;display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}
+.person-doc-links a{color:var(--red);font-weight:bold;text-decoration:underline}
 
 label {
   display:block;
@@ -640,8 +651,27 @@ footer {
 
       <div class="field full">
         <label for="personNotes">Observaciones</label>
-        <textarea id="personNotes"
-          placeholder="Información adicional..."></textarea>
+        <textarea id="personNotes" placeholder="Información adicional..."></textarea>
+      </div>
+      <div class="media-panel">
+        <h3>📷 Fotografía de la persona (opcional)</h3>
+        <p class="media-help">Toma una foto con la cámara o selecciona una imagen de tu teléfono.</p>
+        <div class="media-actions">
+          <label class="btn-red btn-small" for="personPhotoCamera">TOMAR FOTO</label>
+          <label class="btn-gray btn-small" for="personPhotoFile">SUBIR IMAGEN</label>
+        </div>
+        <input id="personPhotoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="user" class="hidden">
+        <input id="personPhotoFile" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+        <div id="personPhotoPreview" class="media-preview"></div>
+      </div>
+      <div class="media-panel">
+        <h3>🪪 Identificación y documentos oficiales (opcional)</h3>
+        <p class="media-help">Sube fotos o PDF del INE, pasaporte u otra identificación oficial. Puedes seleccionar varios archivos, por ejemplo, frente y reverso del INE. Máximo 8 archivos de 10 MB cada uno.</p>
+        <input id="personIdentityFiles" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple>
+        <div id="personIdentitySelection" class="media-file-list">No hay archivos nuevos seleccionados.</div>
+        <div id="personExistingDocs" class="media-file-list"></div>
+        <label class="media-consent"><input id="personMediaConsent" type="checkbox"><span>Confirmo que la persona conoce y autorizó que ALAN almacene su fotografía y/o documentos para gestionar esta cuenta.</span></label>
+        <p class="media-help">Los documentos se guardan en un espacio privado. Solo las cuentas autorizadas pueden consultarlos. Sube únicamente los documentos necesarios.</p>
       </div>
 
     </div>
@@ -1001,7 +1031,11 @@ function normalizarPersona(person) {
     phone:String(person.phone || person.telefono || ""),
 
     notes:String(person.notes || person.observaciones || ""),
-
+    photoPath:person.photoPath || person.photo_path || null,
+    photoUrl:null,
+    identityDocs:Array.isArray(person.identityDocs || person.identity_docs)
+      ? (person.identityDocs || person.identity_docs).map(doc=>({path:String(doc.path||""),name:String(doc.name||"Documento"),type:String(doc.type||""),size:Number(doc.size||0),uploadedAt:doc.uploadedAt||doc.uploaded_at||null,url:null})).filter(doc=>doc.path)
+      : [],
     createdAt:person.createdAt || new Date().toISOString(),
 
     payments
@@ -1392,6 +1426,9 @@ function render() {
 
     }
 
+    const mediaHTML=(person.photoUrl||(person.identityDocs||[]).length)
+      ? `<div class="person-media">${person.photoUrl?'<img class="person-photo" alt="Fotografía del cliente" src="'+escapeHTML(person.photoUrl)+'">':'<span style="font-size:28px">🪪</span>'}<div><strong style="font-size:12px">Expediente privado</strong><div class="person-doc-links">${(person.identityDocs||[]).map((doc,i)=>doc.url?'<a href="'+escapeHTML(doc.url)+'" target="_blank" rel="noopener">Documento '+(i+1)+': '+escapeHTML(doc.name)+'</a>':'<span>Documento '+(i+1)+' guardado</span>').join("")}</div></div></div>`
+      : "";
     const payments = person.payments.length
       ? person.payments.map(payment => `
           <div class="payment-row">
@@ -1447,6 +1484,7 @@ function render() {
         </div>
 
         ${countdownHTML}
+        ${mediaHTML}
 
         <div class="balance">
           ${money(calc.saldo)}
@@ -1543,9 +1581,34 @@ function render() {
    GUARDAR Y EDITAR PERSONAS
 ========================================== */
 
+let alanSelectedPhotoFile=null;
+let alanSelectedIdentityFiles=[];
+
+function alanClearMediaSelection(){
+ alanSelectedPhotoFile=null;alanSelectedIdentityFiles=[];
+ $("personPhotoCamera").value="";$("personPhotoFile").value="";
+ $("personIdentityFiles").value="";$("personPhotoPreview").innerHTML="";
+ $("personIdentitySelection").textContent="No hay archivos nuevos seleccionados.";
+ $("personExistingDocs").innerHTML="";$("personMediaConsent").checked=false;
+}
+function alanPreviewPhoto(file){
+ const url=URL.createObjectURL(file);
+ $("personPhotoPreview").innerHTML='<img alt="Vista previa" src="'+escapeHTML(url)+'"><span class="media-help">'+escapeHTML(file.name||"Foto seleccionada")+'</span>';
+}
+function alanRenderExistingMedia(person){
+ $("personPhotoPreview").innerHTML=person&&person.photoUrl
+  ? '<div class="media-preview"><img alt="Fotografía del cliente" src="'+escapeHTML(person.photoUrl)+'"><span class="media-help">Fotografía privada guardada.</span></div>'
+  : (person&&person.photoPath?'<p class="media-help">La fotografía está guardada de forma privada. Conéctate para verla.</p>':"");
+ const docs=person&&Array.isArray(person.identityDocs)?person.identityDocs:[];
+ $("personExistingDocs").innerHTML=docs.length
+  ? '<strong>Documentos guardados:</strong><br>'+docs.map((doc,i)=>'<div>📄 '+escapeHTML(doc.name)+(doc.url?' · <a href="'+escapeHTML(doc.url)+'" target="_blank" rel="noopener">Abrir documento '+(i+1)+'</a>':' · Guardado de forma privada')+'</div>').join("")
+  : "";
+}
+
 function limpiarFormulario() {
 
   $("personForm").reset();
+  alanClearMediaSelection();
 
   $("personId").value = "";
 
@@ -1581,6 +1644,8 @@ function editarPersona(id) {
   $("personPhone").value = person.phone;
 
   $("personNotes").value = person.notes;
+  alanClearMediaSelection();
+  alanRenderExistingMedia(person);
 
   $("formTitle").textContent = "✏️ Editar persona";
 
@@ -1597,6 +1662,9 @@ function editarPersona(id) {
 
 }
 
+$("personPhotoCamera").addEventListener("change",event=>{const file=event.target.files&&event.target.files[0];if(file){alanSelectedPhotoFile=file;$("personPhotoFile").value="";alanPreviewPhoto(file);}});
+$("personPhotoFile").addEventListener("change",event=>{const file=event.target.files&&event.target.files[0];if(file){alanSelectedPhotoFile=file;$("personPhotoCamera").value="";alanPreviewPhoto(file);}});
+$("personIdentityFiles").addEventListener("change",event=>{alanSelectedIdentityFiles=Array.from(event.target.files||[]);$("personIdentitySelection").textContent=alanSelectedIdentityFiles.length?alanSelectedIdentityFiles.map(file=>file.name+" ("+(file.size/1048576).toFixed(2)+" MB)").join(" · "):"No hay archivos nuevos seleccionados.";});
 $("personForm").addEventListener("submit",async event => {
 
   event.preventDefault();
@@ -1639,8 +1707,21 @@ $("personForm").addEventListener("submit",async event => {
     ? people.find(p => p.id === id)
     : null;
 
+  const photoFile=alanSelectedPhotoFile;
+  const identityFiles=alanSelectedIdentityFiles.slice();
+  const hasNewMedia=!!photoFile||identityFiles.length>0;
+  if(hasNewMedia&&(!alanClient||!alanUser||!navigator.onLine)){mostrarToast("Para subir fotos o identificaciones necesitas conexión a internet e iniciar sesión.");return;}
+  if(hasNewMedia&&!$("personMediaConsent").checked){mostrarToast("Confirma que tienes autorización de la persona para guardar sus documentos.");return;}
+  const imageTypes=["image/jpeg","image/png","image/webp"];
+  if(photoFile&&(!imageTypes.includes(photoFile.type)||photoFile.size>10*1024*1024)){mostrarToast("La foto debe ser JPG, PNG o WebP y pesar máximo 10 MB.");return;}
+  if(identityFiles.length>8||identityFiles.some(file=>(!imageTypes.includes(file.type)&&file.type!=="application/pdf")||file.size>10*1024*1024)){mostrarToast("Máximo 8 documentos JPG, PNG, WebP o PDF de hasta 10 MB cada uno.");return;}
+
   const person = {
-    id:existing ? existing.id : generarId(),
+    id:existing ? existing.id : (alanUser?alanUuid(generarId()):generarId()),
+    ownerId:existing?existing.ownerId:(alanUser?alanUser.id:null),
+    photoPath:existing?existing.photoPath:null,
+    photoUrl:existing?existing.photoUrl:null,
+    identityDocs:existing?(existing.identityDocs||[]):[],
 
     name,
 
@@ -1675,17 +1756,34 @@ $("personForm").addEventListener("submit",async event => {
 
   }
 
-  const saved = await guardarDatos();
-
-  render();
-
-  limpiarFormulario();
-
-  mostrarToast(
-    saved
-      ? (existing ? "Persona actualizada correctamente." : "Persona registrada correctamente.")
-      : "Registro realizado, pero no se pudo guardar permanentemente. Descarga una copia."
-  );
+  let saved=await guardarDatos();
+  if(saved&&hasNewMedia){
+    const uploaded=[];
+    try{
+      const owner=person.ownerId||alanUser.id,bucket=alanClient.storage.from("alan-private-documents");
+      const ext=file=>file.type==="application/pdf"?"pdf":file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+      if(photoFile){
+        const path=owner+"/"+person.id+"/photo-"+alanUuid(generarId())+"."+ext(photoFile);
+        const {error}=await bucket.upload(path,photoFile,{contentType:photoFile.type,upsert:false});if(error)throw error;
+        uploaded.push(path);person.photoPath=path;
+      }
+      for(const file of identityFiles){
+        const path=owner+"/"+person.id+"/identity-"+alanUuid(generarId())+"."+ext(file);
+        const {error}=await bucket.upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;
+        uploaded.push(path);person.identityDocs.push({path,name:String(file.name||"Documento").slice(0,180),type:file.type,size:file.size,uploadedAt:new Date().toISOString()});
+      }
+      if(!await guardarDatos())throw new Error("No se pudieron guardar las referencias de los archivos.");
+      await alanRefreshPrivateMedia();
+    }catch(mediaError){
+      console.error("Error al guardar documentos privados:",mediaError);
+      if(uploaded.length){const {error}=await alanClient.storage.from("alan-private-documents").remove(uploaded);if(error)console.error("No se pudieron limpiar archivos incompletos:",error);}
+      person.photoPath=existing?existing.photoPath:null;person.identityDocs=existing?(existing.identityDocs||[]):[];
+      await guardarDatos();mostrarToast("La persona se guardó, pero no se pudieron adjuntar los archivos: "+(mediaError.message||"error"));
+      render();limpiarFormulario();return;
+    }
+  }
+  render();limpiarFormulario();
+  mostrarToast(saved?(existing?"Persona actualizada correctamente.":"Persona registrada correctamente.")+(hasNewMedia?" Documentos privados guardados.":""):"Registro realizado, pero no se pudo guardar permanentemente. Descarga una copia.");
 
 });
 
@@ -2068,13 +2166,25 @@ function alanShowLogin(){document.querySelector(".app").classList.add("hidden");
 function alanShowPasswordRecovery(){document.querySelector(".app").classList.add("hidden");document.getElementById("authScreen").classList.remove("hidden");document.getElementById("authForm").classList.add("hidden");document.getElementById("forgotPasswordPanel").classList.add("hidden");document.getElementById("newPasswordPanel").classList.remove("hidden");alanMsg("Verifica tu nueva contraseña. Estás usando un enlace seguro de recuperación.");}
 function alanResetAuthPanels(){document.getElementById("authForm").classList.remove("hidden");document.getElementById("forgotPasswordPanel").classList.add("hidden");document.getElementById("newPasswordPanel").classList.add("hidden");}
 
+async function alanRefreshPrivateMedia(){
+ if(!alanClient||!alanUser)return;
+ const bucket=alanClient.storage.from("alan-private-documents");
+ await Promise.all(people.map(async person=>{
+  person.photoUrl=null;
+  if(person.photoPath){const {data,error}=await bucket.createSignedUrl(person.photoPath,600);if(!error&&data)person.photoUrl=data.signedUrl;}
+  person.identityDocs=await Promise.all((person.identityDocs||[]).map(async doc=>{
+   const {data,error}=await bucket.createSignedUrl(doc.path,600);return {...doc,url:!error&&data?data.signedUrl:null};
+  }));
+ }));
+ render();
+}
 async function alanLoadCloud(){
  const [p,a]=await Promise.all([alanClient.from("alan_people").select("*").order("created_at",{ascending:false}),alanClient.from("alan_payments").select("*").order("payment_date",{ascending:false})]);
  if(p.error)throw p.error;if(a.error)throw a.error;
  alanKnownPeople=new Set((p.data||[]).map(x=>x.id));alanKnownPayments=new Set((a.data||[]).map(x=>x.id));
  const map=new Map();(a.data||[]).forEach(x=>{if(!map.has(x.person_id))map.set(x.person_id,[]);map.get(x.person_id).push({id:x.id,ownerId:x.owner_id,amount:Number(x.amount),date:x.payment_date,note:x.note||""});});
- people=(p.data||[]).map(x=>normalizarPersona({id:x.id,ownerId:x.owner_id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",createdAt:x.created_at,payments:map.get(x.id)||[]}));
- storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();
+ people=(p.data||[]).map(x=>normalizarPersona({id:x.id,ownerId:x.owner_id,name:x.name,initialDebt:Number(x.initial_debt||0),dailyFine:Number(x.daily_fine||0),dueDate:x.due_date,phone:x.phone||"",notes:x.notes||"",photoPath:x.photo_path,identityDocs:x.identity_docs||[],createdAt:x.created_at,payments:map.get(x.id)||[]}));
+ storageMode="indexedDB";actualizarEstado("","indexedDB");document.getElementById("storageNotice").textContent="✓ Sincronización en la nube activa. Tus datos están disponibles en otros dispositivos.";render();await alanRefreshPrivateMedia();
  const cloudWasInitialized=localStorage.getItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id)==="1";
  if((p.data||[]).length>0||cloudWasInitialized){
   try{if(database)await guardarIndexedDB(people);guardarLocalStorage(people);localStorage.setItem(ALAN_LOCAL_OWNER,alanUser.id);localStorage.setItem(ALAN_CLOUD_INIT_PREFIX+alanUser.id,"1");}catch(e){console.warn(e);}
@@ -2086,7 +2196,7 @@ async function alanSaveCloud(){
   alanBusy=true;
   const normalized=people.map(p=>({...p,id:alanUuid(p.id),payments:(p.payments||[]).map(a=>({...a,id:alanUuid(a.id)}))}));
   people=normalized;
-  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
+  const pr=people.map(p=>({id:p.id,owner_id:p.ownerId||alanUser.id,name:p.name,initial_debt:Number(p.initialDebt||0),daily_fine:Number(p.dailyFine||0),initial_late_days:0,initial_fine:0,fine_base_date:today(),due_date:p.dueDate,phone:p.phone||"",notes:p.notes||"",photo_path:p.photoPath||null,identity_docs:Array.isArray(p.identityDocs)?p.identityDocs:[],created_at:p.createdAt||new Date().toISOString(),updated_at:new Date().toISOString()}));
   const ar=people.flatMap(p=>(p.payments||[]).map(a=>({id:a.id,owner_id:a.ownerId||p.ownerId||alanUser.id,person_id:p.id,amount:Number(a.amount||0),payment_date:a.date||today(),note:a.note||""})));
   const nowP=new Set(pr.map(x=>x.id)),nowA=new Set(ar.map(x=>x.id));
   const goneA=[...alanKnownPayments].filter(x=>!nowA.has(x));
