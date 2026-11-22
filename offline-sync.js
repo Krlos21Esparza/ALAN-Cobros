@@ -65,7 +65,8 @@
     if (!pending) return true;
     flushing = true;
     try {
-      restoreBaseline(pending.baseline);
+      if (!pending.userId || pending.userId !== alanUser.id) throw new Error("Los cambios pendientes pertenecen a otra cuenta. Se conservaron sin sincronizar.");
+      restoreBaseline(pending.baseline && pending.baseline.userId === alanUser.id ? pending.baseline : {people:[],payments:[]});
       people = clone(pending.snapshot).map(normalizarPersona);
       render();
       const ok = await cloudSave();
@@ -95,7 +96,8 @@
           version: 2,
           userId: alanUser.id,
           createdAt: new Date().toISOString(),
-          baseline: baseline || {
+          baseline: baseline && baseline.userId === alanUser.id ? baseline : {
+            userId: alanUser.id,
             people: [...(alanKnownPeople || [])],
             payments: [...(alanKnownPayments || [])]
           }
