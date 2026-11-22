@@ -2143,7 +2143,41 @@ document.getElementById("sendRecoveryBtn").addEventListener("click",async()=>{co
 document.getElementById("saveNewPasswordBtn").addEventListener("click",async()=>{const p=document.getElementById("newPassword").value,confirm=document.getElementById("confirmNewPassword").value;if(p.length<8){alanMsg("La nueva contraseña debe tener al menos 8 caracteres.","error");return;}if(p!==confirm){alanMsg("Las contraseñas no coinciden.","error");return;}const b=document.getElementById("saveNewPasswordBtn");b.disabled=true;try{const {error}=await alanClient.auth.updateUser({password:p});if(error)throw error;alanMsg("Tu contraseña se actualizó correctamente. Ya puedes continuar.","success");document.getElementById("newPasswordPanel").classList.add("hidden");const {data}=await alanClient.auth.getSession();if(data.session)await alanActivate(data.session);else{alanResetAuthPanels();alanShowLogin();}}catch(e){alanMsg(e.message||"No se pudo actualizar la contraseña.","error");}finally{b.disabled=false;}});
 document.getElementById("authShowPassword").addEventListener("change",e=>{document.getElementById("authPassword").type=e.target.checked?"text":"password";});
 document.getElementById("authForm").addEventListener("submit",async e=>{e.preventDefault();const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;document.getElementById("authLoginBtn").disabled=true;document.getElementById("authSignupBtn").disabled=true;alanMsg("Iniciando sesión...");try{const {data,error}=await alanClient.auth.signInWithPassword({email,password});if(error)throw error;await alanActivate(data.session);}catch(x){alanMsg(x.message||"No se pudo iniciar sesión.","error");}finally{document.getElementById("authLoginBtn").disabled=false;document.getElementById("authSignupBtn").disabled=false;}});
-document.getElementById("authSignupBtn").addEventListener("click",async()=>{const email=document.getElementById("authEmail").value.trim().toLowerCase(),password=document.getElementById("authPassword").value;if(!email||!email.includes("@")){alanMsg("Escribe un correo electrónico válido.","error");return;}if(password.length<8){alanMsg("La contraseña debe tener al menos 8 caracteres.","error");return;}alanMsg("Creando cuenta...");try{const {data,error}=await alanClient.auth.signUp({email,password});if(error)throw error;if(data.session)await alanActivate(data.session);else alanMsg("Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.","success");}catch(x){alanMsg(x.message||"No se pudo crear la cuenta.","error");}});
+document.getElementById("authSignupBtn").addEventListener("click",async()=>{
+ const email=document.getElementById("authEmail").value.trim().toLowerCase();
+ const password=document.getElementById("authPassword").value;
+ const btn=document.getElementById("authSignupBtn");
+ if(!email||!email.includes("@")){alanMsg("Escribe un correo electrónico válido.","error");return;}
+ if(password.length<8){alanMsg("La contraseña debe tener al menos 8 caracteres.","error");return;}
+ if(!alanClient){alanMsg("El servicio de acceso no está disponible. Comprueba tu conexión e inténtalo de nuevo.","error");return;}
+ btn.disabled=true;
+ document.getElementById("authLoginBtn").disabled=true;
+ alanMsg("Creando tu cuenta...");
+ try{
+  const {data,error}=await alanClient.auth.signUp({email,password});
+  if(error)throw error;
+  if(data.session){
+   await alanActivate(data.session);
+   alanMsg("Cuenta creada y sesión iniciada. Ya puedes registrar personas.","success");
+   return;
+  }
+  // Supabase can return an empty identities array for an email that already exists.
+  // Do not treat this as a successful new signup or expose account enumeration.
+  alanMsg("La solicitud fue recibida, pero todavía no hay una sesión activa. Revisa tu correo para confirmar la cuenta. Si ya tenías una cuenta, vuelve al acceso e inicia sesión con tu contraseña. Si no recuerdas la contraseña, usa «¿Olvidaste tu contraseña?» y no vuelvas a crear la cuenta.", "success");
+ }catch(err){
+  const message=String(err&&err.message||"");
+  if(/already registered|already been registered|user already exists|email address.*exists/i.test(message)){
+   alanMsg("Ese correo ya tiene una cuenta. No necesitas crear otra: inicia sesión con tu contraseña o usa «¿Olvidaste tu contraseña?» para recuperarla.", "error");
+  }else if(/rate.?limit|too many requests|429/i.test(message)){
+   alanMsg("Se alcanzó el límite temporal de solicitudes de registro. Espera un momento antes de volver a intentarlo.", "error");
+  }else{
+   alanMsg(message||"No se pudo crear la cuenta. Comprueba el correo y vuelve a intentarlo.", "error");
+  }
+ }finally{
+  btn.disabled=false;
+  document.getElementById("authLoginBtn").disabled=false;
+ }
+});
 
 /* Instalación PWA: compatible con Chrome/Android y guía manual para iPhone. */
 let alanInstallPrompt=null;
