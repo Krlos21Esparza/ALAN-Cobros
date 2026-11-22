@@ -95,6 +95,7 @@ export default {
     }
 
     const userId = ctx.userClaims?.sub;
+    const isSuperadmin = ctx.userClaims?.app_metadata?.role === "superadmin";
     const recipient = ctx.userClaims?.email;
     if (!userId || !recipient) {
       return Response.json({ error: "No se pudo identificar la cuenta autenticada." }, { status: 401 });
@@ -126,7 +127,7 @@ export default {
       .eq("id", paymentId)
       .single();
 
-    if (paymentError || !payment || payment.owner_id !== userId) {
+    if (paymentError || !payment || (payment.owner_id !== userId && !isSuperadmin)) {
       return Response.json({ error: "No se encontró el cobro de esta cuenta." }, { status: 404 });
     }
 
@@ -136,7 +137,7 @@ export default {
       .eq("id", payment.person_id)
       .single();
 
-    if (personError || !person || person.owner_id !== userId) {
+    if (personError || !person || (person.owner_id !== userId && !isSuperadmin)) {
       return Response.json({ error: "No se encontró el cliente asociado a este cobro." }, { status: 404 });
     }
 
@@ -144,7 +145,7 @@ export default {
       .from("alan_payments")
       .select("amount")
       .eq("person_id", person.id)
-      .eq("owner_id", userId);
+      .eq("owner_id", person.owner_id);
 
     if (paymentsError) {
       return Response.json({ error: "No se pudo calcular el saldo actualizado." }, { status: 500 });
