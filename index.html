@@ -523,6 +523,24 @@ footer {
 .auth-panel button{width:100%;min-height:46px;margin-top:8px}
 .pwa-help{font-size:12px;color:#555;line-height:1.5;text-align:center;margin-top:8px}
 
+
+/* Aviso inteligente de instalación PWA */
+.pwa-auto-notice{display:flex;align-items:center;gap:10px;padding:12px;margin:0 0 12px;border:1px solid rgba(215,25,32,.22);border-radius:14px;background:linear-gradient(120deg,#fff5f5,#fff);box-shadow:0 8px 24px rgba(80,0,0,.08);animation:pwaNoticeIn .5s cubic-bezier(.2,.8,.2,1) both;text-align:left}
+.pwa-notice-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:12px;background:#ffe3e5;font-size:22px;animation:pwaIconFloat 2.8s ease-in-out infinite}
+.pwa-notice-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.pwa-notice-copy strong{font-size:12px;color:#a90e16}
+.pwa-notice-copy span{font-size:11px;line-height:1.4;color:#555}
+.pwa-notice-action{background:#d71920;color:#fff;padding:10px 12px;white-space:nowrap;font-size:11px;min-height:40px}
+.pwa-notice-close{background:transparent;color:#777;padding:4px 7px;font-size:20px;min-height:34px}
+@keyframes pwaNoticeIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes pwaIconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+html[data-theme="dark"] .pwa-auto-notice{background:linear-gradient(120deg,#302126,#20242c);border-color:#71343a}
+html[data-theme="dark"] .pwa-notice-copy strong{color:#ffb8bd}
+html[data-theme="dark"] .pwa-notice-copy span{color:#c4cbd4}
+html[data-theme="dark"] .pwa-notice-icon{background:#49272b}
+@media(max-width:360px){.pwa-auto-notice{gap:7px;padding:9px}.pwa-notice-icon{width:34px;height:34px;flex-basis:34px;font-size:19px}.pwa-notice-action{padding:9px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.pwa-auto-notice,.pwa-notice-icon{animation:none!important}}
+
 /* Apariencia ALAN: claro, automático y oscuro */
 .auth-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .auth-brand{margin-bottom:0}
@@ -598,8 +616,14 @@ html[data-theme="dark"] .tag.paid{background:#1d3451;color:#a9ceff}
 <div class="field"><label for="confirmNewPassword">Confirmar contraseña</label><input id="confirmNewPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Repite la contraseña"></div>
 <button class="btn-red" id="saveNewPasswordBtn" type="button">GUARDAR NUEVA CONTRASEÑA</button>
 </div>
+<div class="pwa-auto-notice hidden" id="pwaAutoNotice" role="status" aria-live="polite">
+  <div class="pwa-notice-icon" aria-hidden="true">📲</div>
+  <div class="pwa-notice-copy"><strong id="pwaNoticeTitle">Instala ALAN en tu dispositivo</strong><span id="pwaNoticeText">Accede más rápido desde tu pantalla de inicio.</span></div>
+  <button type="button" class="pwa-notice-action" id="pwaNoticeAction">Instalar</button>
+  <button type="button" class="pwa-notice-close" id="pwaNoticeClose" aria-label="Cerrar aviso">×</button>
+</div>
 <button class="pwa-install" id="installAppBtn" type="button">⬇ INSTALAR APLICACIÓN</button>
-<p class="pwa-help" id="installHelp">Instala ALAN en tu dispositivo para abrirla desde tu pantalla de inicio.</p>
+<p class="pwa-help" id="installHelp">ALAN comprobará si tu navegador permite instalarla como aplicación.</p>
 <p id="authMessage" class="auth-message" role="status" aria-live="polite">Tus datos estarán protegidos por tu cuenta.</p>
 </div></section>
 <div class="app hidden">
@@ -2271,16 +2295,123 @@ document.getElementById("authSignupBtn").addEventListener("click",async()=>{
  }
 });
 
-/* Instalación PWA: compatible con Chrome/Android y guía manual para iPhone. */
+/* Instalación PWA: detección automática y aviso guiado. */
 let alanInstallPrompt=null;
 const alanInstallButton=document.getElementById("installAppBtn");
 const alanInstallHelp=document.getElementById("installHelp");
 const alanInstallButtonApp=document.getElementById("installAppBtnApp");
-window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();alanInstallPrompt=event;alanInstallButton.classList.remove("hidden");if(alanInstallButtonApp)alanInstallButtonApp.classList.remove("hidden");alanInstallHelp.textContent="Pulsa el botón para instalar ALAN en tu dispositivo.";});
-window.addEventListener("appinstalled",()=>{alanInstallPrompt=null;alanInstallButton.classList.add("hidden");if(alanInstallButtonApp)alanInstallButtonApp.classList.add("hidden");alanInstallHelp.textContent="ALAN ya está instalada en tu dispositivo.";});
-alanInstallButton.addEventListener("click",async()=>{if(alanInstallPrompt){alanInstallPrompt.prompt();const choice=await alanInstallPrompt.userChoice;if(choice&&choice.outcome==="accepted"){alanInstallHelp.textContent="Instalación aceptada. ALAN aparecerá en tu pantalla de inicio.";}alanInstallPrompt=null;return;}const ua=navigator.userAgent||"";if(/iphone|ipad|ipod/i.test(ua)){alanInstallHelp.textContent="En Safari: pulsa Compartir y después 'Añadir a pantalla de inicio'.";return;}if(window.matchMedia("(display-mode: standalone)").matches){alanInstallHelp.textContent="ALAN ya está instalada.";return;}alanInstallHelp.textContent="Si tu navegador ofrece 'Instalar aplicación' o 'Añadir a pantalla de inicio', selecciónalo desde el menú ⋮ del navegador.";});
-if(alanInstallButtonApp)alanInstallButtonApp.addEventListener("click",()=>alanInstallButton.click());
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(error=>console.warn("No se pudo activar el modo PWA:",error)));}
+const alanPwaNotice=document.getElementById("pwaAutoNotice");
+const alanPwaNoticeTitle=document.getElementById("pwaNoticeTitle");
+const alanPwaNoticeText=document.getElementById("pwaNoticeText");
+const alanPwaNoticeAction=document.getElementById("pwaNoticeAction");
+const alanPwaNoticeClose=document.getElementById("pwaNoticeClose");
+let alanPwaIsInstalled=false;
+function alanIsStandalone(){
+ return window.matchMedia("(display-mode: standalone)").matches ||
+  window.matchMedia("(display-mode: fullscreen)").matches ||
+  window.navigator.standalone===true;
+}
+function alanShowPwaNotice(kind){
+ if(alanIsStandalone()||alanPwaIsInstalled)return;
+ if(kind==="installable"){
+  alanPwaNoticeTitle.textContent="¡ALAN está lista para instalarse!";
+  alanPwaNoticeText.textContent="Añádela a tu pantalla de inicio y ábrela como una aplicación.";
+  alanPwaNoticeAction.textContent="Instalar";
+  alanPwaNotice.classList.remove("hidden");
+  alanInstallHelp.textContent="Tu navegador confirmó que ALAN se puede instalar.";
+ }else if(kind==="ios"){
+  alanPwaNoticeTitle.textContent="Añade ALAN a tu pantalla de inicio";
+  alanPwaNoticeText.textContent="En Safari, pulsa Compartir y elige «Añadir a pantalla de inicio».";
+  alanPwaNoticeAction.textContent="Ver pasos";
+  alanPwaNotice.classList.remove("hidden");
+  alanInstallHelp.textContent="En iPhone/iPad la instalación se realiza desde el menú Compartir de Safari.";
+ }else if(kind==="fallback"){
+  alanPwaNoticeTitle.textContent="Instala ALAN como aplicación";
+  alanPwaNoticeText.textContent="Abre el menú del navegador y busca «Instalar aplicación» o «Añadir a pantalla de inicio».";
+  alanPwaNoticeAction.textContent="Ver pasos";
+  alanPwaNotice.classList.remove("hidden");
+ }
+}
+function alanHidePwaNotice(){
+ alanPwaNotice.classList.add("hidden");
+}
+function alanShowInstallInstructions(){
+ const ua=navigator.userAgent||"";
+ if(/iphone|ipad|ipod/i.test(ua)){
+  alanInstallHelp.textContent="Para instalar: abre esta página en Safari, pulsa el botón Compartir (cuadrado con flecha) y selecciona «Añadir a pantalla de inicio». Confirma con «Añadir».";
+ }else{
+  alanInstallHelp.textContent="Abre el menú ⋮ o ⋯ del navegador y selecciona «Instalar aplicación» o «Añadir a pantalla de inicio». El nombre puede variar según el navegador.";
+ }
+}
+window.addEventListener("beforeinstallprompt",event=>{
+ event.preventDefault();
+ alanInstallPrompt=event;
+ alanInstallButton.classList.remove("hidden");
+ if(alanInstallButtonApp)alanInstallButtonApp.classList.remove("hidden");
+ alanShowPwaNotice("installable");
+});
+window.addEventListener("appinstalled",()=>{
+ alanPwaIsInstalled=true;
+ alanInstallPrompt=null;
+ alanHidePwaNotice();
+ alanInstallButton.classList.add("hidden");
+ if(alanInstallButtonApp)alanInstallButtonApp.classList.add("hidden");
+ alanInstallHelp.textContent="ALAN ya está instalada en este dispositivo.";
+});
+async function alanRunInstall(){
+ if(alanInstallPrompt){
+  alanInstallPrompt.prompt();
+  const choice=await alanInstallPrompt.userChoice;
+  if(choice&&choice.outcome==="accepted"){
+   alanInstallHelp.textContent="Instalación aceptada. ALAN aparecerá en tu pantalla de inicio.";
+   alanHidePwaNotice();
+  }else{
+   alanInstallHelp.textContent="Puedes instalar ALAN cuando quieras desde este botón o el menú del navegador.";
+  }
+  alanInstallPrompt=null;
+  return;
+ }
+ alanShowInstallInstructions();
+}
+alanInstallButton.addEventListener("click",alanRunInstall);
+if(alanInstallButtonApp)alanInstallButtonApp.addEventListener("click",alanRunInstall);
+alanPwaNoticeAction.addEventListener("click",async()=>{
+ if(alanInstallPrompt){await alanRunInstall();return;}
+ alanShowInstallInstructions();
+});
+alanPwaNoticeClose.addEventListener("click",alanHidePwaNotice);
+if(alanIsStandalone()){
+ alanPwaIsInstalled=true;
+ alanHidePwaNotice();
+ alanInstallButton.classList.add("hidden");
+ if(alanInstallButtonApp)alanInstallButtonApp.classList.add("hidden");
+ alanInstallHelp.textContent="ALAN se está ejecutando como aplicación instalada.";
+}else{
+ const ua=navigator.userAgent||"";
+ if(/iphone|ipad|ipod/i.test(ua)){
+  alanShowPwaNotice("ios");
+ }else{
+  setTimeout(()=>{
+   if(!alanInstallPrompt&&!alanIsStandalone()){
+    alanShowPwaNotice("fallback");
+   }
+  },3500);
+ }
+}
+if("serviceWorker" in navigator){
+ window.addEventListener("load",async()=>{
+  try{
+   const registration=await navigator.serviceWorker.register("./sw.js",{scope:"./"});
+   await navigator.serviceWorker.ready;
+   console.info("ALAN PWA: Service Worker activo.",registration.scope);
+  }catch(error){
+   console.warn("No se pudo activar el modo PWA:",error);
+   alanInstallHelp.textContent="No se pudo activar el modo sin conexión. Comprueba que abriste ALAN desde su dirección HTTPS.";
+  }
+ });
+}else{
+ alanInstallHelp.textContent="Este navegador no admite la instalación PWA. Prueba con Chrome o Edge actualizado.";
+}
 document.getElementById("signOutBtn").addEventListener("click",async()=>{const {error}=await alanClient.auth.signOut();if(error)mostrarToast(error.message);});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&alanUser)alanLoadCloud().catch(console.warn);});
 inicializar();
