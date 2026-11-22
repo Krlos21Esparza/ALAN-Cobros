@@ -1765,19 +1765,19 @@ $("personForm").addEventListener("submit",async event => {
       if(photoFile){
         const path=owner+"/"+person.id+"/photo-"+alanUuid(generarId())+"."+ext(photoFile);
         const {error}=await bucket.upload(path,photoFile,{contentType:photoFile.type,upsert:false});if(error)throw error;
-        uploaded.push(path);person.photoPath=path;
+        uploaded.push(path);const activePerson=people.find(p=>p.id===person.id);if(!activePerson)throw new Error("No se encontró el registro para asociar la fotografía.");activePerson.photoPath=path;
       }
       for(const file of identityFiles){
         const path=owner+"/"+person.id+"/identity-"+alanUuid(generarId())+"."+ext(file);
         const {error}=await bucket.upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;
-        uploaded.push(path);person.identityDocs.push({path,name:String(file.name||"Documento").slice(0,180),type:file.type,size:file.size,uploadedAt:new Date().toISOString()});
+        uploaded.push(path);const activePerson=people.find(p=>p.id===person.id);if(!activePerson)throw new Error("No se encontró el registro para asociar el documento.");activePerson.identityDocs.push({path,name:String(file.name||"Documento").slice(0,180),type:file.type,size:file.size,uploadedAt:new Date().toISOString()});
       }
       if(!await guardarDatos())throw new Error("No se pudieron guardar las referencias de los archivos.");
       await alanRefreshPrivateMedia();
     }catch(mediaError){
       console.error("Error al guardar documentos privados:",mediaError);
       if(uploaded.length){const {error}=await alanClient.storage.from("alan-private-documents").remove(uploaded);if(error)console.error("No se pudieron limpiar archivos incompletos:",error);}
-      person.photoPath=existing?existing.photoPath:null;person.identityDocs=existing?(existing.identityDocs||[]):[];
+      const rollbackPerson=people.find(p=>p.id===person.id);if(rollbackPerson){rollbackPerson.photoPath=existing?existing.photoPath:null;rollbackPerson.identityDocs=existing?(existing.identityDocs||[]):[];}
       await guardarDatos();mostrarToast("La persona se guardó, pero no se pudieron adjuntar los archivos: "+(mediaError.message||"error"));
       render();limpiarFormulario();return;
     }
@@ -1951,6 +1951,15 @@ $("peopleList").addEventListener("click",async event => {
     );
 
     if (!confirmed) return;
+
+    const privatePaths=[...(person.photoPath?[person.photoPath]:[]),...(person.identityDocs||[]).map(doc=>doc.path).filter(Boolean)];
+    if(privatePaths.length&&alanClient&&navigator.onLine){
+      const {error:storageError}=await alanClient.storage.from("alan-private-documents").remove(privatePaths);
+      if(storageError){mostrarToast("No se pudieron eliminar los documentos privados. La persona no fue eliminada.");return;}
+    }else if(privatePaths.length){
+      mostrarToast("Conéctate a internet para eliminar primero los documentos privados de esta persona.");
+      return;
+    }
 
     people = people.filter(p => p.id !== id);
 
